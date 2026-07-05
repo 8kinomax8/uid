@@ -1,0 +1,52 @@
+---
+import type { ContentBlock } from "../data/site";
+import { linkContactText } from "../lib/contact-links";
+
+type Props = {
+	block: ContentBlock;
+	reverse?: boolean;
+	image?: string | null;
+	className?: string;
+};
+
+const { block, reverse = false, image = "/images/event-closeup.webp", className } = Astro.props;
+const ctaIsExternal = block.cta?.external ?? /^https?:\/\//.test(block.cta?.href ?? "");
+---
+
+<section class:list={["content-flow", className, { "content-flow--reverse": reverse }]}>
+	<div class="content-flow__text" data-reveal>
+		{block.kicker && <p class="section-kicker">{block.kicker}</p>}
+		<h2>{block.title}</h2>
+		{block.body.map((paragraph) => <p>{paragraph}</p>)}
+		{
+			block.cta && (
+				<a class="button-link" href={block.cta.href} target={ctaIsExternal ? "_blank" : undefined} rel={ctaIsExternal ? "noreferrer" : undefined}>
+					<span>{block.cta.label}</span>
+					<span aria-hidden="true"> →</span>
+				</a>
+			)
+		}
+	</div>
+	<div class="content-flow__aside" data-reveal>
+		{image && <img src={image} alt="" width="900" height="760" loading="lazy" decoding="async" />}
+		{
+			block.points && (
+				<ul class="fact-list">
+					{block.points.map((point) => (
+						<li>
+							{linkContactText(point).map((chunk) =>
+								chunk.href ? (
+									<a href={chunk.href} class="inline-contact-link">
+										{chunk.text}
+									</a>
+								) : (
+									chunk.text
+								),
+							)}
+						</li>
+					))}
+				</ul>
+			)
+		}
+	</div>
+</section>

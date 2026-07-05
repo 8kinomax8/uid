@@ -1,0 +1,20 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PhotoLightbox from "../components/PhotoLightbox.astro";
+import PageHero from "../components/PageHero.astro";
+import { photoGallery } from "../data/site";
+---
+
+<BaseLayout title="Photos" description="Galerie photo de l'Union Instrumentale de Delémont.">
+	<PageHero title="Photos" kicker="Regards" text="Des fragments de scène, de répétition et de transmission, comme autant de traces du son partagé." image="/images/event-concert.webp" />
+	<section class="photo-wall" aria-label="Aperçu photo">
+		{
+			photoGallery.map((photo) => (
+				<button class:list={["photo-wall__item", photo.className]} type="button" data-photo-open data-photo-src={photo.src} data-photo-alt={photo.alt} data-reveal>
+					<img src={photo.src} alt={photo.alt} width="1200" height="900" loading="lazy" decoding="async" />
+				</button>
+			))
+		}
+	</section>
+	<PhotoLightbox initialImage={photoGallery[0]?.src ?? "/images/event-concert.webp"} />
+</BaseLayout>

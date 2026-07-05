@@ -1,0 +1,18 @@
+---
+import { navigation, site } from "../data/site";
+---
+
+<footer class="site-footer">
+	<div class="footer-wordmark">
+		<img src="/LogoUID.png" alt="" width="74" height="43" />
+		<p>{site.name}</p>
+	</div>
+	<nav aria-label="Navigation secondaire">
+		{navigation.map((item) => <a href={item.href}>{item.label}</a>)}
+		<a href="/mentions-legales/">Mentions légales</a>
+	</nav>
+	<address>
+		<span>{site.address}</span>
+		<a href={`mailto:${site.email}`}>{site.email}</a>
+	</address>
+</footer>

@@ -1,0 +1,21 @@
+---
+type Props = {
+	title: string;
+	kicker?: string;
+	text?: string;
+	image?: string;
+};
+
+const { title, kicker, text, image = "/images/hero-concert.webp" } = Astro.props;
+---
+
+<section class="page-hero">
+	<div class="page-hero__media">
+		<img src={image} alt="" width="1800" height="1012" decoding="async" />
+	</div>
+	<div class="page-hero__content" data-reveal>
+		{kicker && <p class="section-kicker">{kicker}</p>}
+		<h1>{title}</h1>
+		{text && <p>{text}</p>}
+	</div>
+</section>

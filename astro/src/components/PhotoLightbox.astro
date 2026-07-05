@@ -1,0 +1,24 @@
+---
+type Props = {
+	initialImage: string;
+};
+
+const { initialImage } = Astro.props;
+---
+
+<dialog class="photo-lightbox" data-photo-lightbox aria-label="Photo en grand format">
+	<button class="photo-lightbox__nav photo-lightbox__nav--prev" type="button" data-photo-prev>
+		<span class="sr-only">Photo précédente</span>
+		<span aria-hidden="true">←</span>
+	</button>
+	<button class="photo-lightbox__close" type="button" data-photo-close>
+		<span class="sr-only">Fermer</span>
+		<span aria-hidden="true"></span>
+		<span aria-hidden="true"></span>
+	</button>
+	<img src={initialImage} alt="" data-photo-lightbox-image />
+	<button class="photo-lightbox__nav photo-lightbox__nav--next" type="button" data-photo-next>
+		<span class="sr-only">Photo suivante</span>
+		<span aria-hidden="true"> →</span>
+	</button>
+</dialog>

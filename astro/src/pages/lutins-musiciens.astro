@@ -1,0 +1,37 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ContentFlow from "../components/ContentFlow.astro";
+import PageHero from "../components/PageHero.astro";
+import { lutinsSchedule, pages } from "../data/site";
+---
+
+<BaseLayout title="Lutins musiciens" description="Jardin musical pour les enfants de 3 à 6 ans à l'Union Instrumentale de Delémont.">
+	<PageHero
+		title="Lutins musiciens"
+		kicker="Jardin musical"
+		text="Une première rencontre ludique avec la musique, pensée pour les enfants dès 3 ans."
+		image="/images/lutins_musiciens_illustration.jpg"
+	/>
+	<ContentFlow block={pages.lutins} image="/images/animatrices_lutins.png" className="content-flow--compact-media" />
+	<section class="detail-band" aria-labelledby="lutins-horaires">
+		<div class="detail-band__intro" data-reveal>
+			<p class="section-kicker">Organisation</p>
+			<h2 id="lutins-horaires">Détails pratiques</h2>
+		</div>
+		<div class="detail-grid" data-reveal>
+			<div>
+				<h3>Classes</h3>
+				<ul>
+					{lutinsSchedule.classTimes.map((time) => <li>{time}</li>)}
+				</ul>
+			</div>
+			<div>
+				<h3>Pratique</h3>
+				<ul>
+					{lutinsSchedule.practicalDetails.map((detail) => <li>{detail}</li>)}
+				</ul>
+			</div>
+		</div>
+	</section>
+	<ContentFlow block={pages.lutinsDiscovery} image="/images/Session-decouverte-3-6ans_lutins-musiciens.png" reverse />
+</BaseLayout>

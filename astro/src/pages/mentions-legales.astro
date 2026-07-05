@@ -1,0 +1,54 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import { site } from "../data/site";
+---
+
+<BaseLayout title="Mentions légales" description="Mentions légales de l'Union Instrumentale de Delémont.">
+	<PageHero
+		title="Mentions légales"
+		kicker="Informations"
+		text="Les informations utiles concernant l'éditeur du site et les contenus publiés."
+		image="/images/event-closeup.webp"
+	/>
+	<section class="legal-page" aria-labelledby="legal-title">
+		<div class="section-heading section-heading--compact" data-reveal>
+			<p class="section-kicker">Éditeur</p>
+			<h2 id="legal-title">{site.name}</h2>
+			<p>
+				Ce site présente les activités, événements et informations de contact de l'Union Instrumentale de
+				Delémont.
+			</p>
+		</div>
+
+		<div class="legal-grid">
+			<section data-reveal>
+				<h3>Contact</h3>
+				<p>{site.address}</p>
+				<p><a href={`mailto:${site.email}`}>{site.email}</a></p>
+			</section>
+			<section data-reveal>
+				<h3>Responsabilité</h3>
+				<p>
+					Les contenus sont préparés avec soin. Les informations relatives aux dates, lieux et programmes
+					peuvent toutefois évoluer; les communications officielles de la société font foi.
+				</p>
+			</section>
+			<section data-reveal>
+				<h3>Droits d'auteur</h3>
+				<p>
+					Les textes, images, logos et éléments graphiques du site appartiennent à leurs auteurs respectifs.
+					Toute réutilisation nécessite l'accord préalable de l'Union Instrumentale de Delémont ou des ayants
+					droit concernés.
+				</p>
+			</section>
+			<section data-reveal>
+				<h3>Données personnelles</h3>
+				<p>
+					Les données transmises par email servent uniquement à répondre aux demandes reçues. Pour toute
+					question liée aux données personnelles, contactez la société à l'adresse indiquée ci-dessus.
+				</p>
+			</section>
+		</div>
+	</section>
+</BaseLayout>

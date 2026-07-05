@@ -1,0 +1,23 @@
+---
+type Props = {
+	className?: string;
+	label?: string;
+	showLabel?: boolean;
+	duration?: number;
+};
+
+const { className, label = "Changer le thème", showLabel = false, duration = 460 } = Astro.props;
+---
+
+<button
+	class:list={["theme-toggle", className]}
+	type="button"
+	aria-label={label}
+	aria-pressed="false"
+	data-theme-toggle
+	data-theme-duration={duration}
+>
+	<span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true"></span>
+	<span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true"></span>
+	<span class:list={[{ "sr-only": !showLabel }]}>{label}</span>
+</button>

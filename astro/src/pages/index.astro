@@ -1,0 +1,66 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import EventCard from "../components/EventCard.astro";
+import { site } from "../data/site";
+import { getEvents } from "../lib/wordpress";
+
+const events = await getEvents();
+---
+
+<BaseLayout title="News" description={site.description}>
+	<section class="home-hero" aria-labelledby="home-title">
+		<div class="home-hero__content">
+			<p class="section-kicker">Fanfare de Delémont</p>
+			<h1 id="home-title">Union Instrumentale de Delémont</h1>
+			<p>
+				Depuis 1878, l'Union Instrumentale de Delémont rassemble bois, cuivres et percussion dans une harmonie
+				intergénérationnelle. La société cultive le plaisir de jouer ensemble, les concerts qui réunissent la
+				ville et la transmission aux jeunes musiciennes et musiciens.
+			</p>
+			<div class="hero-actions">
+				<a class="button-link button-link--bright" href="#news">Voir les événements</a>
+				<a class="ghost-link" href="/harmonie/">Découvrir l'histoire</a>
+			</div>
+		</div>
+		<div class="hero-badge" aria-label="Société fondée en 1878">
+			<span>Fondée en</span>
+			<strong>1878</strong>
+			<small>Bois · Cuivres · Percussion</small>
+		</div>
+	</section>
+
+	<section class="formation-section" aria-labelledby="formation-title">
+		<div class="section-heading section-heading--compact" data-reveal>
+			<p class="section-kicker">Transmission</p>
+			<h2 id="formation-title">Grandir en musique, dès les premiers sons.</h2>
+			<p>
+				Les Cadets accompagnent les jeunes instrumentistes vers le jeu d'ensemble. Les Lutins musiciens ouvrent
+				la porte aux plus petits avec un jardin musical ludique, régulier et chaleureux.
+			</p>
+		</div>
+		<div class="formation-links" data-reveal>
+			<a href="/cadets/">
+				<img src="/images/cadets.jpg" alt="Jeunes musiciens cadets en répétition" width="640" height="520" />
+				<span>Cadets UID</span>
+			</a>
+			<a href="/lutins-musiciens/">
+				<img src="/images/lutins_musiciens_illustration.jpg" alt="Illustration des Lutins musiciens" width="640" height="520" />
+				<span>Lutins musiciens</span>
+			</a>
+		</div>
+	</section>
+
+	<section class="events-section" id="news" aria-labelledby="news-title">
+		<div class="section-heading">
+			<p class="section-kicker">Événements</p>
+			<h2 id="news-title">Prochains moments à vivre ensemble.</h2>
+			<p>
+				Concerts, répétitions ouvertes et rendez-vous de formation: les nouvelles de l'Instrum se vivent
+				d'abord dans la salle, puis se retrouvent ici.
+			</p>
+		</div>
+		<div class="events-grid">
+			{events.map((event, index) => <EventCard event={event} index={index} />)}
+		</div>
+	</section>
+</BaseLayout>

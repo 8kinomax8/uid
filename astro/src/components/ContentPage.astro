@@ -1,0 +1,18 @@
+---
+import ContentFlow from "./ContentFlow.astro";
+import PageHero from "./PageHero.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { pages, type ContentPageConfig } from "../data/site";
+
+type Props = {
+	config: ContentPageConfig;
+};
+
+const { config } = Astro.props;
+const block = pages[config.block];
+---
+
+<BaseLayout title={config.title} description={config.description}>
+	<PageHero {...config.hero} />
+	<ContentFlow block={block} image={config.image} reverse={config.reverse} className={config.className} />
+</BaseLayout>

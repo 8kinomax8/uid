@@ -1,0 +1,23 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import { site } from "../data/site";
+---
+
+<BaseLayout title="Contact" description="Contacter l'Union Instrumentale de Delémont.">
+	<PageHero title="Contact" kicker="Rencontre" text="Une question, une visite de répétition ou une inscription? L'Instrum vous répond." />
+	<section class="contact-panel" aria-labelledby="contact-title">
+		<div data-reveal>
+			<p class="section-kicker">Local UID</p>
+			<h2 id="contact-title">Rue du Temple 31, Delémont.</h2>
+			<p>
+				Pour découvrir une répétition, poser une question aux Cadets ou contacter le Jardin musical, écrivez-nous.
+			</p>
+		</div>
+		<div class="contact-links" data-reveal>
+			<a href={`mailto:${site.email}`}>{site.email}</a>
+			<a href="mailto:cadets@fanfareuid.ch">cadets@fanfareuid.ch</a>
+			<a href="mailto:lutins.musiciens@fanfareuid.ch">lutins.musiciens@fanfareuid.ch</a>
+		</div>
+	</section>
+</BaseLayout>

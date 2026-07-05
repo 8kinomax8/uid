@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import EventCard from "../components/EventCard.astro";
+import PageHero from "../components/PageHero.astro";
+import { getAgendaItems } from "../lib/wordpress";
+
+const agenda = await getAgendaItems();
+---
+
+<BaseLayout title="Agenda" description="Agenda des concerts, répétitions ouvertes et événements de l'Union Instrumentale de Delémont.">
+	<PageHero title="Agenda" kicker="Calendrier" text="Le frontend Astro affiche les données exposées par WordPress et le calendrier synchronisé." />
+	<section class="events-section events-section--agenda" aria-labelledby="agenda-title">
+		<div class="section-heading" data-reveal>
+			<p class="section-kicker">Calendrier</p>
+			<h2 id="agenda-title">Les prochains rendez-vous.</h2>
+			<p>
+				Les dates publiées par l'UID se rassemblent ici pour préparer une sortie, une visite ou une première
+				rencontre avec la société.
+			</p>
+		</div>
+		<div class="agenda-list">
+			{agenda.map((event, index) => <EventCard event={event} index={index} />)}
+		</div>
+	</section>
+</BaseLayout>
