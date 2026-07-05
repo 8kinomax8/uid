@@ -1,0 +1,33 @@
+/* MOVED CSS TO THEME DUE TO CSS CRUSH
+.bt_back_to_top_button, .bt_back_to_top_button_no_icon {
+		display:none;
+		position:fixed;
+		right:20px;
+		bottom:20px;
+		z-index:9999;
+		border: none; 
+		outline: none; 
+		background-color: red; 		
+		color: #fff;
+		cursor: pointer;
+		padding: 10px;
+		border-radius: 5px;
+		font-size: 16px;
+}
+
+.bt_back_to_top_button:hover, .bt_back_to_top_button_no_icon:hover {
+		 background-color: #555; 
+		 color: #fff;
+}
+
+.bt_back_to_top_button::after {
+		content: "\f077";
+		font-family: FontAwesome;
+		font-weight: normal;
+		font-style: normal;
+		font-size: 2em;
+		line-height: 40px;
+		color: #fff;
+		padding: 5px;
+}
+*/
