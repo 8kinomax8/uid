@@ -26,12 +26,10 @@ const toggleTheme = (themeToggle: HTMLButtonElement, themeToggles: HTMLButtonEle
 	const maxRadius = Math.hypot(Math.max(x, viewportWidth - x), Math.max(y, viewportHeight - y));
 	const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${maxRadius}px at ${x}px ${y}px)`];
 	const root = document.documentElement;
-	const useInstantThemeSwitch = window.matchMedia("(max-width: 900px)").matches || themeToggle.closest("[data-menu-panel]");
 
 	const applyTheme = () => setTheme(nextTheme, themeToggles);
 
 	if (
-		useInstantThemeSwitch ||
 		typeof document.startViewTransition !== "function" ||
 		window.matchMedia("(prefers-reduced-motion: reduce)").matches
 	) {
@@ -56,7 +54,7 @@ const toggleTheme = (themeToggle: HTMLButtonElement, themeToggles: HTMLButtonEle
 			{ clipPath },
 			{
 				duration,
-				easing: "ease-in-out",
+				easing: "cubic-bezier(0.77, 0, 0.175, 1)",
 				fill: "forwards",
 				pseudoElement: "::view-transition-new(root)",
 			},

@@ -22,7 +22,7 @@ const ctaIsExternal = block.cta?.external ?? /^https?:\/\//.test(block.cta?.href
 			block.cta && (
 				<a class="button-link" href={block.cta.href} target={ctaIsExternal ? "_blank" : undefined} rel={ctaIsExternal ? "noreferrer" : undefined}>
 					<span>{block.cta.label}</span>
-					<span aria-hidden="true"> →</span>
+					<span class="button-link__arrow" aria-hidden="true">→</span>
 				</a>
 			)
 		}

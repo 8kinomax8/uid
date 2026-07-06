@@ -18,6 +18,15 @@ const { className, label = "Changer le thème", showLabel = false, duration = 46
 	data-theme-duration={duration}
 >
 	<span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true"></span>
-	<span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true"></span>
+	<span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">
+		<span class="theme-toggle__sun-ray" style="--ray-angle: 0deg"></span>
+		<span class="theme-toggle__sun-ray" style="--ray-angle: 45deg"></span>
+		<span class="theme-toggle__sun-ray" style="--ray-angle: 90deg"></span>
+		<span class="theme-toggle__sun-ray" style="--ray-angle: 135deg"></span>
+		<span class="theme-toggle__sun-ray" style="--ray-angle: 180deg"></span>
+		<span class="theme-toggle__sun-ray" style="--ray-angle: 225deg"></span>
+		<span class="theme-toggle__sun-ray" style="--ray-angle: 270deg"></span>
+		<span class="theme-toggle__sun-ray" style="--ray-angle: 315deg"></span>
+	</span>
 	<span class:list={[{ "sr-only": !showLabel }]}>{label}</span>
 </button>

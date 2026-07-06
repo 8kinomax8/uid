@@ -68,8 +68,8 @@ export const navigation: NavItem[] = [
 
 export const fallbackEvents: EventItem[] = [
 	{
-		title: "Concert de printemps",
-		date: "Avril 2026",
+		title: "Concert annuel",
+		date: "Décembre 2026",
 		location: "Delémont",
 		summary:
 			"Une soirée de répertoire contrasté où l'harmonie traverse musiques de films, classiques et pièces modernes.",
@@ -78,7 +78,7 @@ export const fallbackEvents: EventItem[] = [
 	},
 	{
 		title: "Session découverte Cadets",
-		date: "Printemps 2026",
+		date: "30 avril 2026",
 		location: "Local UID",
 		summary:
 			"Un moment pour rencontrer les jeunes musiciens, essayer l'ambiance de groupe et poser toutes les questions.",
@@ -86,9 +86,9 @@ export const fallbackEvents: EventItem[] = [
 		href: "/cadets/",
 	},
 	{
-		title: "Répétition ouverte",
-		date: "Sur inscription",
-		location: "Rue du Temple 31",
+		title: "Festival Jurassien",
+		date: "22 novembre 2026",
+		location: "Porrentruy",
 		summary:
 			"Venez écouter l'Instrum au travail et découvrir comment se construit le son d'une harmonie.",
 		image: "/images/event-closeup.webp",
@@ -155,9 +155,10 @@ export const pages = {
 			"Les Cadets UID regroupent les jeunes musiciens de 7 ans et plus qui suivent une formation instrumentale au sein de l'Instrum Delémont.",
 			"La musique permet d'exercer la persévérance, la motivation, l'estime de soi et l'autonomie. Dans une harmonie comme l'UID, elle donne aussi le plaisir de jouer en groupe et d'apprendre au contact d'autres musiciens.",
 			"Depuis août 2025, les jeunes de la Fanfare de Courtételle et de l'Union Instrumentale Delémont se réunissent dans l'ensemble Union d'Avenir, dirigé par Marinel Mittempergher.",
+			"Si tu veux venir les écouter, merci de nous contacter à par mail afin de convenir d’une date de visite!"
 		],
 		points: [
-			"Union d'Avenir: vendredi, 18h15 à 19h30",
+			"Répétion: vendredi, 18h15 à 19h30",
 			"Contact: cadets@fanfareuid.ch",
 		],
 		cta: {
