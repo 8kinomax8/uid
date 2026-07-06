@@ -23,8 +23,8 @@ const canonical = new URL(Astro.url.pathname, site.url).toString();
 		<title>{pageTitle}</title>
 		<meta name="description" content={description} />
 		<link rel="canonical" href={canonical} />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=uid" />
+		<link rel="alternate icon" href="/favicon.ico?v=uid" />
 		<meta property="og:title" content={pageTitle} />
 		<meta property="og:description" content={description} />
 		<meta property="og:type" content="website" />
@@ -47,16 +47,12 @@ const canonical = new URL(Astro.url.pathname, site.url).toString();
 		</script>
 	</head>
 	<body>
-		<div class="loader" data-loader aria-hidden="true" hidden>
-			<img src="/gold_logo_loop.gif" alt="" width="540" height="540" />
-		</div>
 		<div class="wand-cursor" data-wand-cursor aria-hidden="true"></div>
 		<Header />
 		<main>
 			<slot />
 		</main>
 		<Footer />
-		<noscript><style>.loader{display:none}</style></noscript>
 		<script>
 			import "../scripts/motion";
 		</script>

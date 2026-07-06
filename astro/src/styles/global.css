@@ -183,25 +183,6 @@ button {
 	border: 0;
 }
 
-.loader {
-	position: fixed;
-	inset: 0;
-	z-index: 50;
-	display: grid;
-	place-items: center;
-	background: var(--gunmetal);
-}
-
-.loader[hidden] {
-	display: none;
-}
-
-.loader img {
-	width: min(44vw, 260px);
-	height: auto;
-	filter: none;
-}
-
 .wand-cursor {
 	position: fixed;
 	top: 0;
@@ -1323,10 +1304,6 @@ h3 {
 	background:
 		linear-gradient(90deg, color-mix(in oklch, white, transparent 0%) 0%, color-mix(in oklch, white, transparent 18%) 56%, transparent 100%),
 		linear-gradient(180deg, transparent 45%, var(--night) 100%);
-}
-
-[data-theme="light"] .loader {
-	background: var(--night);
 }
 
 [data-theme="light"] .formation-links a::after {
