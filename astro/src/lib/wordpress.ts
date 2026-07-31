@@ -39,7 +39,7 @@ const fallbackEventAt = (index: number) => fallbackEvents[index % fallbackEvents
 
 const imageFromPost = (post: WordPressPost, index: number) => {
 	const media = post._embedded?.["wp:featuredmedia"]?.[0];
-	const fallback = fallbackEventAt(index)?.image ?? "/images/event-closeup.webp";
+	const fallback = fallbackEventAt(index)?.image ?? "/images/Photo_ensemble.jpg";
 	return media?.media_details?.sizes?.large?.source_url ?? media?.source_url ?? fallback;
 };
 

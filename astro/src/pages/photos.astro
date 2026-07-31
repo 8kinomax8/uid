@@ -6,7 +6,7 @@ import { photoGallery } from "../data/site";
 ---
 
 <BaseLayout title="Photos" description="Galerie photo de l'Union Instrumentale de Delémont.">
-	<PageHero title="Photos" kicker="Regards" text="Des fragments de scène, de répétition et de transmission, comme autant de traces du son partagé." image="/images/event-concert.webp" />
+	<PageHero title="Photos" kicker="Regards" text="Des fragments de scène, de répétition et de transmission, comme autant de traces du son partagé." image="/images/Photo_ensemble.jpg" />
 	<section class="photo-wall" aria-label="Aperçu photo">
 		{
 			photoGallery.map((photo) => (
@@ -16,5 +16,5 @@ import { photoGallery } from "../data/site";
 			))
 		}
 	</section>
-	<PhotoLightbox initialImage={photoGallery[0]?.src ?? "/images/event-concert.webp"} />
+	<PhotoLightbox initialImage={photoGallery[0]?.src ?? "/images/Photo_ensemble.jpg"} />
 </BaseLayout>

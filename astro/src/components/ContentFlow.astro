@@ -9,7 +9,7 @@ type Props = {
 	className?: string;
 };
 
-const { block, reverse = false, image = "/images/event-closeup.webp", className } = Astro.props;
+const { block, reverse = false, image = "/images/Photo_ensemble.jpg", className } = Astro.props;
 const ctaIsExternal = block.cta?.external ?? /^https?:\/\//.test(block.cta?.href ?? "");
 ---
 
@@ -29,6 +29,7 @@ const ctaIsExternal = block.cta?.external ?? /^https?:\/\//.test(block.cta?.href
 	</div>
 	<div class="content-flow__aside" data-reveal>
 		{image && <img src={image} alt="" width="900" height="760" loading="lazy" decoding="async" />}
+		<slot name="aside-after" />
 		{
 			block.points && (
 				<ul class="fact-list">

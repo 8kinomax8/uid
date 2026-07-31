@@ -73,7 +73,7 @@ export const fallbackEvents: EventItem[] = [
 		location: "Delémont",
 		summary:
 			"Une soirée de répertoire contrasté où l'harmonie traverse musiques de films, classiques et pièces modernes.",
-		image: "/images/event-concert.webp",
+		image: "/images/Photo_ensemble.jpg",
 		href: "/agenda/",
 	},
 	{
@@ -82,7 +82,7 @@ export const fallbackEvents: EventItem[] = [
 		location: "Local UID",
 		summary:
 			"Un moment pour rencontrer les jeunes musiciens, essayer l'ambiance de groupe et poser toutes les questions.",
-		image: "/images/event-cadets.webp",
+		image: "/images/cadets.jpg",
 		href: "/cadets/",
 	},
 	{
@@ -91,7 +91,7 @@ export const fallbackEvents: EventItem[] = [
 		location: "Porrentruy",
 		summary:
 			"Venez écouter l'Instrum au travail et découvrir comment se construit le son d'une harmonie.",
-		image: "/images/event-closeup.webp",
+		image: "/images/uid_disney.jpg",
 		href: "/contact/",
 	},
 ];
@@ -152,20 +152,30 @@ export const pages = {
 		title: "Cadets UID",
 		kicker: "Transmission",
 		body: [
-			"Les Cadets UID regroupent les jeunes musiciens de 7 ans et plus qui suivent une formation instrumentale au sein de l'Instrum Delémont.",
-			"La musique permet d'exercer la persévérance, la motivation, l'estime de soi et l'autonomie. Dans une harmonie comme l'UID, elle donne aussi le plaisir de jouer en groupe et d'apprendre au contact d'autres musiciens.",
-			"Depuis août 2025, les jeunes de la Fanfare de Courtételle et de l'Union Instrumentale Delémont se réunissent dans l'ensemble Union d'Avenir, dirigé par Marinel Mittempergher.",
-			"Si tu veux venir les écouter, merci de nous contacter à par mail afin de convenir d’une date de visite!"
-		],
-		points: [
-			"Répétion: vendredi, 18h15 à 19h30",
-			"Contact: cadets@fanfareuid.ch",
+			"Les Cadets UID regroupent tous les jeunes musiciens de 7 ans et plus qui suivent une formation instrumentale au sein de l'Instrum’ Delémont.",
+			"Selon leur âge et leur niveau musical, ils rejoignent l’un des deux ensembles. La musique permet d’exercer la persévérance, la motivation, l’estime de soi et l’autonomie, tout en donnant le plaisir de jouer en groupe.",
+			"Les Aventuriers — pour celles et ceux qui commencent un instrument | Union d’Avenir — après la réussite de l’examen phase 1",
+			"Responsable formation —\nFlorence Harris (076 512 42 12)",
 		],
 		cta: {
 			label: "Inscription aux Cadets",
 			href: "https://docs.google.com/forms/d/e/1FAIpQLSediSYKFzgUQ0VNV6_AAhGTa3fydTvuevxOgsnC76kQs4voAA/viewform?usp=header",
 			external: true,
 		},
+	},
+	unionDAvenir: {
+		title: "Union d’Avenir",
+		kicker: "Ensemble des jeunes",
+		body: [
+			"Depuis août 2025, les jeunes musiciens de la Fanfare de Courtételle et de l’Union Instrumentale Delémont se sont réunis pour former ce nouvel ensemble.",
+			"Union d’Avenir rassemble des jeunes de 8 à 18 ans jouant des instruments à vent et des percussions. Ils répètent le vendredi soir sous la direction de Marinel Mittempergher.",
+			"Pour venir les écouter, contactez-nous afin de convenir d’une date de visite.",
+		],
+		points: [
+			"Répétition — vendredi, 18h15 à 19h30",
+			"Direction — Marinel Mittempergher",
+			"Contact — cadets@fanfareuid.ch",
+		],
 	},
 	lutins: {
 		title: "Lutins musiciens",
@@ -177,7 +187,7 @@ export const pages = {
 		],
 		points: [
 			"4 classes ouvertes au semestre de janvier à juin 2026",
-			"Contact: lutins.musiciens@fanfareuid.ch",
+			"Contact: lutins.musiciens@fanfareuid.ch / 079 544 73 88",
 		],
 		cta: {
 			label: "Inscription au semestre",
@@ -224,7 +234,7 @@ export const contentPages = {
 			text: "Une société née en 1878, aujourd'hui portée par une quarantaine de musiciennes et musiciens de 2e division.",
 		},
 		block: "harmonie",
-		image: "/images/event-concert.webp",
+		image: "/images/Photo_ensemble.jpg",
 	},
 	direction: {
 		title: "Direction",
@@ -293,10 +303,20 @@ export const lutinsSchedule = {
 	],
 };
 
+export const lutinsAnimators = [
+	{
+		name: "Claudette Theurillat",
+		text: "Je suis passionnée de musique et cheffe d’orchestre. J’ai suivi diverses formations dans le domaine musical et suis monitrice «J+M» (Jeunesse et Musique). J’ai à coeur de faire découvrir à vos enfants le monde merveilleux de la musique.",	},
+	{
+		name: "Matilde Studer",
+		text: "Je suis enseignante et j’habite à Delémont. J’aime faire de la danse, du chant et des voyages. Je me réjouis d’apporter des activités et de vivre de bons moments musicaux avec vos enfants!",
+	},
+];
+
 export const photoGallery: PhotoItem[] = [
 	{
-		src: "/images/event-concert.webp",
-		alt: "Section de cuivres pendant un concert de l'UID",
+		src: "/images/Photo_ensemble.jpg",
+		alt: "Musiciens de l’UID réunis en ensemble",
 		className: "photo-wall__item--tall",
 	},
 	{

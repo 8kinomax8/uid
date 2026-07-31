@@ -2,7 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ContentFlow from "../components/ContentFlow.astro";
 import PageHero from "../components/PageHero.astro";
-import { lutinsSchedule, pages } from "../data/site";
+import { lutinsAnimators, lutinsSchedule, pages } from "../data/site";
 ---
 
 <BaseLayout title="Lutins musiciens" description="Jardin musical pour les enfants de 3 à 6 ans à l'Union Instrumentale de Delémont.">
@@ -12,7 +12,16 @@ import { lutinsSchedule, pages } from "../data/site";
 		text="Une première rencontre ludique avec la musique, pensée pour les enfants dès 3 ans."
 		image="/images/lutins_musiciens_illustration.jpg"
 	/>
-	<ContentFlow block={pages.lutins} image="/images/animatrices_lutins.png" className="content-flow--compact-media" />
+	<ContentFlow block={pages.lutins} image="/images/animatrices_lutins.png" className="content-flow--compact-media">
+		<div slot="aside-after" class="animators-bios" aria-label="Présentation des animatrices">
+			{lutinsAnimators.map((animator) => (
+				<article>
+					<h3>{animator.name}</h3>
+					<p>{animator.text}</p>
+				</article>
+			))}
+		</div>
+	</ContentFlow>
 	<section class="detail-band" aria-labelledby="lutins-horaires">
 		<div class="detail-band__intro" data-reveal>
 			<p class="section-kicker">Organisation</p>
