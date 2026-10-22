@@ -1,0 +1,31 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ContentFlow from "../../components/ContentFlow.astro";
+import PageHero from "../../components/PageHero.astro";
+import { pages } from "../../data/site";
+---
+
+<BaseLayout title="Union d’Avenir" description="L'ensemble Union d’Avenir réunit les jeunes musiciens de Courtételle et de l’Union Instrumentale Delémont.">
+	<PageHero
+		title="Union d’Avenir"
+		kicker="Jeunesse"
+		text="Un orchestre de jeunes musiciens de 8 à 18 ans, réunis autour du plaisir de jouer ensemble."
+		image="/images/union-davenir-groupe.jpg"
+	/>
+	<ContentFlow block={pages.unionDAvenir} image="/images/logo_union_davenir.png" className="content-flow--compact-media" />
+	<section class="cadets-team" aria-labelledby="union-team-title">
+		<div data-reveal>
+			<h2 id="union-team-title">Rejoindre l’ensemble</h2>
+			<p>Après deux ou trois ans de cours individuels, les jeunes peuvent passer un premier examen théorique et pratique, appelé « phase 1 ». Sa réussite leur ouvre les portes d’Union d’Avenir.</p>
+		</div>
+		<div data-reveal>
+			<h3>Les responsables</h3>
+			<p>Le comité Union d’Avenir est composé de Méline (présidente), Jean-Marie (caissier), Marinel (directeur), Chloé, Claire, Elodie et Emilien.</p>
+		</div>
+	</section>
+	<aside class="sponsor-thanks" aria-label="Remerciements au sponsor">
+		<p>Avec le précieux soutien de</p>
+		<img src="/images/LogoViquodeco.jpg" alt="Viquodeco" width="4288" height="1781" loading="lazy" decoding="async" />
+		<p>Merci à notre sponsor !</p>
+	</aside>
+</BaseLayout>

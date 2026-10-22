@@ -1,15 +1,18 @@
 export const initCursor = () => {
 	const cursor = document.querySelector<HTMLElement>("[data-wand-cursor]");
+	const tip = document.querySelector<HTMLElement>("[data-wand-tip]");
 	const supportsFinePointer = window.matchMedia("(pointer: fine)").matches;
 	if (!cursor || !supportsFinePointer) return;
 
 	document.documentElement.classList.add("has-custom-cursor");
 
 	window.addEventListener("pointermove", (event) => {
-		cursor.style.setProperty("--cursor-x", `${event.clientX}px`);
-		cursor.style.setProperty("--cursor-y", `${event.clientY}px`);
-		cursor.classList.add("is-visible");
+		[cursor, tip].forEach((element) => {
+			element?.style.setProperty("--cursor-x", `${event.clientX}px`);
+			element?.style.setProperty("--cursor-y", `${event.clientY}px`);
+			element?.classList.add("is-visible");
+		});
 	});
 
-	window.addEventListener("pointerleave", () => cursor.classList.remove("is-visible"));
+	window.addEventListener("pointerleave", () => [cursor, tip].forEach((element) => element?.classList.remove("is-visible")));
 };

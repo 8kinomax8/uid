@@ -88,8 +88,8 @@ const revealElement = (target: HTMLElement) => {
 };
 
 const initPageArrival = () => {
-	const leadElements = document.querySelectorAll<HTMLElement>(".home-hero__content, .hero-badge, .page-hero__content");
-	const heroMedia = document.querySelector<HTMLElement>(".page-hero__media img");
+	const leadElements = document.querySelectorAll<HTMLElement>(".home-hero > h1, .home-hero__content, .page-hero__content");
+	const heroMedia = document.querySelector<HTMLElement>(".home-hero__media img, .page-hero__media img");
 
 	gsap.from("[data-header]", {
 		y: -14,
@@ -150,7 +150,8 @@ const prepareRevealTarget = (target: HTMLElement) => {
 
 	if (target.matches(".content-flow__aside")) {
 		gsap.set(target, { y: 22, autoAlpha: 0, willChange: "transform, opacity" });
-		gsap.set(target.querySelector("img"), { scale: 1.04, clipPath: "inset(0 0 14% 0)", willChange: "transform" });
+		const media = target.querySelector("img");
+		if (media) gsap.set(media, { scale: 1.04, clipPath: "inset(0 0 14% 0)", willChange: "transform" });
 		gsap.set(target.querySelectorAll(".fact-list li"), { y: 10, autoAlpha: 0, willChange: "transform, opacity" });
 		return;
 	}
@@ -161,7 +162,7 @@ const prepareRevealTarget = (target: HTMLElement) => {
 export const initRevealAnimations = () => {
 	const mm = gsap.matchMedia();
 
-	mm.add({ reduceMotion: "(prefers-reduced-motion: reduce)" }, (context) => {
+	mm.add({ all: "all", reduceMotion: "(prefers-reduced-motion: reduce)" }, (context) => {
 		if (context.conditions?.reduceMotion) {
 			gsap.set("[data-header], .home-hero__content, .hero-badge, [data-reveal], .event-card, .photo-wall__item", {
 				autoAlpha: 1,

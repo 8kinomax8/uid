@@ -2,17 +2,22 @@
 import ContentFlow from "./ContentFlow.astro";
 import PageHero from "./PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { pages, type ContentPageConfig } from "../data/site";
+import { pages, type ContentBlock, type ContentPageConfig } from "../data/site";
 
 type Props = {
 	config: ContentPageConfig;
 };
 
 const { config } = Astro.props;
-const block = pages[config.block];
+const sourceBlock: ContentBlock = pages[config.block];
+const repeatedImage = config.image === (config.hero.image ?? "/images/Photo_ensemble.jpg");
+const image = repeatedImage ? null : config.image;
+const block = repeatedImage && !sourceBlock.points
+	? { ...sourceBlock, title: sourceBlock.kicker ?? sourceBlock.title, kicker: undefined }
+	: sourceBlock;
 ---
 
 <BaseLayout title={config.title} description={config.description}>
 	<PageHero {...config.hero} />
-	<ContentFlow block={block} image={config.image} reverse={config.reverse} className={config.className} />
+	<ContentFlow block={block} image={image} reverse={config.reverse} className={config.className} />
 </BaseLayout>

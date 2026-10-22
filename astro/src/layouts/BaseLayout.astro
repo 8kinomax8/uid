@@ -48,8 +48,10 @@ const canonical = new URL(Astro.url.pathname, site.url).toString();
 	</head>
 	<body>
 		<div class="wand-cursor" data-wand-cursor aria-hidden="true"></div>
+		<div class="wand-cursor-tip" data-wand-tip aria-hidden="true"></div>
+		<a class="skip-link" href="#main-content">Aller au contenu</a>
 		<Header />
-		<main>
+		<main id="main-content" tabindex="-1">
 			<slot />
 		</main>
 		<Footer />

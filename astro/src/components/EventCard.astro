@@ -9,7 +9,7 @@ type Props = {
 const { event, index = 0 } = Astro.props;
 ---
 
-<article class="event-card" style={`--delay:${index * 0.08}s`}>
+<article class:list={["event-card", { "event-card--portrait": event.imageOrientation === "portrait" }]} style={`--delay:${index * 0.08}s`}>
 	<a href={event.href} class="event-card__media" aria-label={`En savoir plus sur ${event.title}`}>
 		<img src={event.image} alt="" width="900" height="760" loading={index === 0 ? "eager" : "lazy"} decoding="async" />
 	</a>

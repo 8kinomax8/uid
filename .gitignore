@@ -26,3 +26,14 @@ astro/.DS_Store
 astro/.idea/
 
 .vscode
+astro/.vscode/
+
+# Local design inspection reports and screenshots
+.taste-skill/
+.impeccable/
+
+.codex/
+
+exemple/
+
+

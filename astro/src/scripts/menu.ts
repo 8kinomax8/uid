@@ -18,6 +18,10 @@ const setMenuState = (isOpen: boolean, menuToggle: HTMLButtonElement, menuPanel:
 	gsap.killTweensOf([menuPanel, ...menuItems]);
 	menuToggle.setAttribute("aria-expanded", String(isOpen));
 	menuPanel.setAttribute("aria-hidden", String(!isOpen));
+	menuPanel.inert = !isOpen;
+	const label = menuToggle.querySelector(".sr-only");
+	if (label) label.textContent = isOpen ? "Fermer le menu" : "Ouvrir le menu";
+	document.querySelectorAll<HTMLElement>("main, .site-footer").forEach((element) => { element.inert = isOpen; });
 
 	if (isOpen) {
 		menuPanel.classList.add("is-open");
@@ -65,15 +69,36 @@ export const initMenu = () => {
 
 	const closeMenu = () => setMenuState(false, menuToggle, menuPanel, false);
 
-	menuToggle.addEventListener("click", () => {
-		setMenuState(menuToggle.getAttribute("aria-expanded") !== "true", menuToggle, menuPanel);
+	menuToggle.addEventListener("click", (event) => {
+		const opening = menuToggle.getAttribute("aria-expanded") !== "true";
+		setMenuState(opening, menuToggle, menuPanel, event.detail !== 0);
+		if (opening && event.detail === 0) menuPanel.querySelector<HTMLAnchorElement>("a")?.focus();
 	});
 
 	document.querySelectorAll<HTMLElement>("[data-menu-link]").forEach((link) => {
 		link.addEventListener("click", closeMenu);
 	});
 
+	window.matchMedia("(min-width: 901px)").addEventListener("change", (event) => {
+		if (event.matches) closeMenu();
+	});
+
 	document.addEventListener("keydown", (event) => {
-		if (event.key === "Escape") closeMenu();
+		if (menuToggle.getAttribute("aria-expanded") !== "true") return;
+		if (event.key === "Escape") {
+			closeMenu();
+			menuToggle.focus();
+		}
+		if (event.key === "Tab") {
+			const controls = [menuToggle, ...menuPanel.querySelectorAll<HTMLElement>("a[href], button")];
+			const index = controls.indexOf(document.activeElement as HTMLElement);
+			if (event.shiftKey && index <= 0) {
+				event.preventDefault();
+				controls.at(-1)?.focus();
+			} else if (!event.shiftKey && (index === controls.length - 1 || index < 0)) {
+				event.preventDefault();
+				menuToggle.focus();
+			}
+		}
 	});
 };

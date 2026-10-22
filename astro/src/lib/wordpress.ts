@@ -4,6 +4,8 @@ type WordPressMedia = {
 	source_url?: string;
 	alt_text?: string;
 	media_details?: {
+		width?: number;
+		height?: number;
 		sizes?: Record<string, { source_url?: string }>;
 	};
 };
@@ -41,6 +43,13 @@ const imageFromPost = (post: WordPressPost, index: number) => {
 	const media = post._embedded?.["wp:featuredmedia"]?.[0];
 	const fallback = fallbackEventAt(index)?.image ?? "/images/Photo_ensemble.jpg";
 	return media?.media_details?.sizes?.large?.source_url ?? media?.source_url ?? fallback;
+};
+
+const orientationFromPost = (post: WordPressPost, index: number): EventItem["imageOrientation"] => {
+	const media = post._embedded?.["wp:featuredmedia"]?.[0];
+	const { width, height } = media?.media_details ?? {};
+	if (width && height) return height > width ? "portrait" : "landscape";
+	return media?.source_url ? undefined : fallbackEventAt(index).imageOrientation;
 };
 
 const endpointFromEnv = (kind: "events" | "agenda") => {
@@ -82,6 +91,7 @@ export const getEvents = () =>
 		location: asString(acf.lieu) || asString(acf.location) || "Delémont",
 		summary: stripHtml(asString(acf.resume) || asString(acf.summary) || post.excerpt?.rendered || post.content?.rendered),
 		image: imageFromPost(post, index),
+		imageOrientation: orientationFromPost(post, index),
 		href: post.link ?? "/agenda/",
 	}));
 
@@ -92,5 +102,6 @@ export const getAgendaItems = () =>
 		location: asString(acf.lieu) || asString(acf.location) || "Delémont",
 		summary: stripHtml(post.excerpt?.rendered || post.content?.rendered),
 		image: imageFromPost(post, index),
+		imageOrientation: orientationFromPost(post, index),
 		href: post.link ?? "/agenda/",
 	}));

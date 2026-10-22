@@ -7,7 +7,8 @@ import { photoGallery } from "../data/site";
 
 <BaseLayout title="Photos" description="Galerie photo de l'Union Instrumentale de Delémont.">
 	<PageHero title="Photos" kicker="Regards" text="Des fragments de scène, de répétition et de transmission, comme autant de traces du son partagé." image="/images/Photo_ensemble.jpg" />
-	<section class="photo-wall" aria-label="Aperçu photo">
+	<section class="photo-wall" aria-labelledby="gallery-title">
+		<h2 id="gallery-title">La vie de l’Instrum</h2>
 		{
 			photoGallery.map((photo) => (
 				<button class:list={["photo-wall__item", photo.className]} type="button" data-photo-open data-photo-src={photo.src} data-photo-alt={photo.alt} data-reveal>

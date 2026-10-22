@@ -1,0 +1,37 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+---
+
+<BaseLayout title="Jeunesse" description="Les trois groupes jeunesse de l'Union Instrumentale de Delémont, des Lutins musiciens à Union d’Avenir.">
+	<PageHero
+		title="Jeunesse"
+		kicker="Grandir en musique"
+		text="Du jardin musical aux premiers concerts, chacun trouve sa place selon son âge et son parcours."
+		image="/images/cadets.jpg"
+	/>
+	<section class="youth-paths" aria-labelledby="youth-paths-title">
+		<div class="section-heading section-heading--compact" data-reveal>
+			<h2 id="youth-paths-title">À chacun son ensemble</h2>
+			<p>La section jeunesse accompagne les enfants des premières découvertes jusqu'au jeu en orchestre.</p>
+		</div>
+		<div class="youth-paths__grid" data-reveal>
+			<a href="/jeunesse/lutins-musiciens/" class="youth-paths__item">
+				<img src="/images/lutins_musiciens_illustration.jpg" alt="Illustration des Lutins musiciens" width="1280" height="573" loading="lazy" />
+				<span class="youth-paths__content"><small>3 à 6 ans</small><strong>Les Lutins musiciens</strong><span>Un jardin musical pour découvrir les sons, le chant et le mouvement.</span></span>
+			</a>
+			<a href="/jeunesse/aventuriers/" class="youth-paths__item">
+				<img src="/images/cadets.jpg" alt="Jeunes musiciens de l’UID réunis devant leur local" width="1600" height="900" loading="lazy" />
+				<span class="youth-paths__content"><small>Dès 7 ans</small><strong>Les Aventuriers</strong><span>Les premiers pas avec un instrument et une répétition en groupe chaque semaine.</span></span>
+			</a>
+			<a href="/jeunesse/union-davenir/" class="youth-paths__item">
+				<img src="/images/union-davenir-groupe.jpg" alt="Les jeunes musiciens d’Union d’Avenir réunis avec leurs instruments" width="1536" height="1004" loading="lazy" />
+				<span class="youth-paths__content"><small>Après la phase 1</small><strong>Union d’Avenir</strong><span>Un ensemble pour les jeunes instrumentistes prêts à jouer concerts et concours.</span></span>
+			</a>
+		</div>
+	</section>
+	<section class="youth-benefits" aria-labelledby="youth-benefits-title">
+		<h2 id="youth-benefits-title">Pourquoi jouer en groupe ?</h2>
+		<p>La musique exerce la persévérance et la motivation, développe l’estime de soi et encourage l’autonomie. Jouer ensemble permet aussi de nouer des amitiés et d’apprendre au contact des autres musiciens.</p>
+	</section>
+</BaseLayout>

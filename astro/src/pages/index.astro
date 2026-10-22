@@ -7,11 +7,10 @@ import { getEvents } from "../lib/wordpress";
 const events = await getEvents();
 ---
 
-<BaseLayout title="News" description={site.description}>
+<BaseLayout title="Union Instrumentale de Delémont" description={site.description}>
 	<section class="home-hero" aria-labelledby="home-title">
+		<h1 id="home-title">Union Instrumentale<br />Delémont</h1>
 		<div class="home-hero__content">
-			<p class="section-kicker">Fanfare de Delémont</p>
-			<h1 id="home-title">Union Instrumentale Delémont</h1>
 			<p>
 				Depuis 1878, l'Union Instrumentale de Delémont rassemble bois, cuivres et percussion dans une harmonie
 				intergénérationnelle. La société cultive le plaisir de jouer ensemble, les concerts qui réunissent la
@@ -22,38 +21,39 @@ const events = await getEvents();
 				<a class="ghost-link" href="/harmonie/">Découvrir l'histoire</a>
 			</div>
 		</div>
-		<div class="hero-badge" aria-label="Société fondée en 1878">
-			<span>Fondée en</span>
-			<strong>1878</strong>
-			<small>Bois · Cuivres · Percussion</small>
-		</div>
+		<figure class="home-hero__media">
+			<img src="/images/Photo_ensemble.jpg" alt="L’Union Instrumentale de Delémont réunie avec ses instruments et ses bannières" width="1800" height="1200" fetchpriority="high" />
+			<figcaption>Bois, cuivres et percussion. Ensemble depuis 1878.</figcaption>
+		</figure>
 	</section>
 
 	<section class="formation-section" aria-labelledby="formation-title">
 		<div class="section-heading section-heading--compact" data-reveal>
-			<p class="section-kicker">Transmission</p>
-			<h2 id="formation-title">Grandir en musique, dès les premiers sons.</h2>
+			<h2 id="formation-title">Grandir en musique</h2>
 			<p>
-				Les Cadets accompagnent les jeunes instrumentistes vers le jeu d'ensemble. Les Lutins musiciens ouvrent
-				la porte aux plus petits avec un jardin musical ludique, régulier et chaleureux.
+				Les Lutins musiciens, les Aventuriers et Union d’Avenir accompagnent les jeunes des premières découvertes
+				musicales jusqu’aux concerts en groupe.
 			</p>
 		</div>
-		<div class="formation-links" data-reveal>
-			<a href="/cadets/">
-				<img src="/images/cadets.jpg" alt="Jeunes musiciens cadets en répétition" width="640" height="520" />
-				<span>Cadets UID</span>
+		<div class="formation-links formation-links--youth" data-reveal>
+			<a href="/jeunesse/lutins-musiciens/">
+				<img src="/images/lutins_musiciens_illustration.jpg" alt="Illustration des Lutins musiciens" width="1280" height="573" />
+				<div class="formation-link__label"><h3>Les Lutins musiciens</h3><small>De 3 à 6 ans</small></div>
 			</a>
-			<a href="/lutins-musiciens/">
-				<img src="/images/lutins_musiciens_illustration.jpg" alt="Illustration des Lutins musiciens" width="640" height="520" />
-				<span>Lutins musiciens</span>
+			<a href="/jeunesse/aventuriers/">
+				<img src="/images/cadets.jpg" alt="Jeunes musiciens réunis devant leur local" width="1600" height="900" />
+				<div class="formation-link__label"><h3>Les Aventuriers</h3><small>Dès 7 ans</small></div>
+			</a>
+			<a href="/jeunesse/union-davenir/">
+				<img src="/images/union-davenir-groupe.jpg" alt="Les jeunes musiciens d’Union d’Avenir" width="1536" height="1004" />
+				<div class="formation-link__label"><h3>Union d’Avenir</h3><small>Après la phase 1</small></div>
 			</a>
 		</div>
 	</section>
 
 	<section class="events-section" id="news" aria-labelledby="news-title">
-		<div class="section-heading">
-			<p class="section-kicker">Événements</p>
-			<h2 id="news-title">Prochains moments à vivre ensemble.</h2>
+		<div class="section-heading" data-reveal>
+			<h2 id="news-title">Les prochains rendez-vous</h2>
 			<p>
 				Concerts, répétitions ouvertes et rendez-vous de formation: les nouvelles de l'Instrum se vivent
 				d'abord dans la salle, puis se retrouvent ici.

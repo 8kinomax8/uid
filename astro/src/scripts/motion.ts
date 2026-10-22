@@ -1,3 +1,5 @@
+import { initLinkLabels } from "./links";
+import { initEventMedia } from "./event-media";
 import { initCursor } from "./cursor";
 import { initMenu } from "./menu";
 import { initPhotoLightbox } from "./photos";
@@ -11,3 +13,6 @@ initTheme();
 initPhotoLightbox();
 initCursor();
 initRevealAnimations();
+
+initLinkLabels();
+initEventMedia();

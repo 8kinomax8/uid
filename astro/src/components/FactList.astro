@@ -1,0 +1,12 @@
+---
+import { linkContactText } from "../lib/contact-links";
+type Props = { points: string[] };
+const { points } = Astro.props;
+---
+<ul class="fact-list">
+	{points.map((point) => (
+		<li>{linkContactText(point).map((chunk) => chunk.href
+			? <a href={chunk.href} class="inline-contact-link">{chunk.text}</a>
+			: chunk.text)}</li>
+	))}
+</ul>

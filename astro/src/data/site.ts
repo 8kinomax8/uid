@@ -5,6 +5,7 @@ export type NavItem = {
 };
 
 export type EventItem = {
+	imageOrientation?: "portrait" | "landscape";
 	title: string;
 	date: string;
 	location: string;
@@ -43,7 +44,7 @@ export const site = {
 	shortName: "UID",
 	url: "https://fanfareuid.ch",
 	description:
-		"Site officiel de l'Union Instrumentale de Delémont: news, agenda, harmonie, cadets, jardin musical et informations de contact.",
+		"Site officiel de l'Union Instrumentale de Delémont: news, agenda, harmonie, jeunesse et informations de contact.",
 	address: "Rue du Temple 31, 2800 Delémont",
 	email: "info@fanfareuid.ch",
 };
@@ -59,8 +60,15 @@ export const navigation: NavItem[] = [
 			{ label: "Commission", href: "/harmonie/commission-de-musique/" },
 		],
 	},
-	{ label: "Cadets", href: "/cadets/" },
-	{ label: "Lutins musiciens", href: "/lutins-musiciens/" },
+	{
+		label: "Jeunesse",
+		href: "/jeunesse/",
+		children: [
+			{ label: "Union d’Avenir", href: "/jeunesse/union-davenir/" },
+			{ label: "Les Lutins musiciens", href: "/jeunesse/lutins-musiciens/" },
+			{ label: "Les Aventuriers", href: "/jeunesse/aventuriers/" },
+		],
+	},
 	{ label: "Agenda", href: "/agenda/" },
 	{ label: "Photos", href: "/photos/" },
 	{ label: "Contact", href: "/contact/" },
@@ -77,13 +85,14 @@ export const fallbackEvents: EventItem[] = [
 		href: "/agenda/",
 	},
 	{
-		title: "Session découverte Cadets",
-		date: "30 avril 2026",
+		title: "Session découverte Aventuriers",
+		date: "21 novembre 2026",
 		location: "Local UID",
 		summary:
-			"Un moment pour rencontrer les jeunes musiciens, essayer l'ambiance de groupe et poser toutes les questions.",
-		image: "/images/cadets.jpg",
-		href: "/cadets/",
+			"Une session découverte pour les enfants de 7 à 10 ans: musique, mouvement et essai des instruments.",
+		image: "/images/aventuriers-decouverte-2026.jpeg",
+		imageOrientation: "portrait",
+		href: "/jeunesse/aventuriers/",
 	},
 	{
 		title: "Festival Jurassien",
@@ -116,7 +125,7 @@ export const pages = {
 		],
 	},
 	comite: {
-		title: "Le comité",
+		title: "Faire vivre la société",
 		kicker: "Coulisses",
 		body: [
 			"Telle la burette d'huile qui lubrifie coulisses et pistons, le comité œuvre à garantir la fluidité du déroulement d'une année UIDienne.",
@@ -134,7 +143,7 @@ export const pages = {
 		],
 	},
 	commission: {
-		title: "La commission de musique",
+		title: "Choisir et préparer le répertoire",
 		kicker: "Répertoire",
 		body: [
 			"Le musicien doit avoir du plaisir à jouer: tel est l'objectif principal de la commission de musique.",
@@ -148,67 +157,72 @@ export const pages = {
 			"Archives — Guillaume Milani",
 		],
 	},
-	cadets: {
-		title: "Cadets UID",
-		kicker: "Transmission",
+	unionDAvenir: {
+		title: "Jouer et progresser ensemble",
+		kicker: "Après la phase 1",
 		body: [
-			"Les Cadets UID regroupent tous les jeunes musiciens de 7 ans et plus qui suivent une formation instrumentale au sein de l'Instrum’ Delémont.",
-			"Selon leur âge et leur niveau musical, ils rejoignent l’un des deux ensembles. La musique permet d’exercer la persévérance, la motivation, l’estime de soi et l’autonomie, tout en donnant le plaisir de jouer en groupe.",
-			"Les Aventuriers — pour celles et ceux qui commencent un instrument | Union d’Avenir — après la réussite de l’examen phase 1",
-			"Responsable formation —\nFlorence Harris (076 512 42 12)",
+			"Depuis août 2025, les jeunes musiciens de la Fanfare de Courtételle et de l’Union Instrumentale Delémont se sont réunis pour former ce nouvel ensemble. Il rassemble des jeunes de 8 à 18 ans jouant des instruments à vent et des percussions.",
+			"Ils répètent le vendredi soir de 18h15 à 19h30 sous la direction de Marinel Mittempergher. Au début des vacances d’automne, un camp de quatre jours leur permet de préparer les concerts et concours de l’année.",
 		],
+		points: [
+			"Répétition — vendredi, 18h15 à 19h30",
+			"Contact — cadets@fanfareuid.ch",
+		],
+	},
+	aventuriers: {
+		title: "Les premiers pas avec un instrument",
+		kicker: "Dès 7 ans",
+		body: [
+			"Les Aventuriers rassemblent les jeunes de 7 ans et plus qui commencent leur formation avec l’instrument de leur choix.",
+			"En plus de leurs cours individuels avec un professeur, ils se retrouvent chaque vendredi pour une heure de répétition en groupe avec leur directeur Biagio Musumeci.",
+		],
+		points: ["Répétition en groupe — chaque vendredi", "Contact — cadets@fanfareuid.ch"],
 		cta: {
-			label: "Inscription aux Cadets",
+			label: "Inscription aux Aventuriers",
 			href: "https://docs.google.com/forms/d/e/1FAIpQLSediSYKFzgUQ0VNV6_AAhGTa3fydTvuevxOgsnC76kQs4voAA/viewform?usp=header",
 			external: true,
 		},
 	},
-	unionDAvenir: {
-		title: "Union d’Avenir",
-		kicker: "Ensemble des jeunes",
+	aventuriersDiscovery: {
+		title: "Session découverte",
+		kicker: "Essayer avant de commencer",
 		body: [
-			"Depuis août 2025, les jeunes musiciens de la Fanfare de Courtételle et de l’Union Instrumentale Delémont se sont réunis pour former ce nouvel ensemble.",
-			"Union d’Avenir rassemble des jeunes de 8 à 18 ans jouant des instruments à vent et des percussions. Ils répètent le vendredi soir sous la direction de Marinel Mittempergher.",
-			"Pour venir les écouter, contactez-nous afin de convenir d’une date de visite.",
+			"Une à deux fois par année, les enfants peuvent découvrir les instruments et jouer avec le mouvement et le rythme. La prochaine session a lieu le samedi 21 novembre 2026, de 10h30 à 11h30, au local UID.",
 		],
-		points: [
-			"Répétition — vendredi, 18h15 à 19h30",
-			"Direction — Marinel Mittempergher",
-			"Contact — cadets@fanfareuid.ch",
-		],
+		points: ["Pour les enfants de 7 à 10 ans", "Gratuit, sur inscription jusqu’au 18 novembre 2026"],
+		cta: {
+			label: "Inscription à la session",
+			href: "https://docs.google.com/forms/d/e/1FAIpQLSemEsbuLEvF4xWsHqP358JqULbgSiJBa8QSez7fgcdaikWBNg/viewform?usp=preview",
+			external: true,
+		},
 	},
 	lutins: {
-		title: "Lutins musiciens",
+		title: "Découvrir la musique en jouant",
 		kicker: "Dès 3 ans",
 		body: [
 			"Le Jardin musical fait découvrir aux enfants le monde de la musique dans un cadre ludique et régulier, une fois par semaine hors vacances scolaires.",
-			"Pour le semestre de janvier à juin 2026, quatre classes sont ouvertes au local UID, Rue du Temple 31 à Delémont.",
+			"Pour le semestre d’août 2026 à janvier 2027, quatre classes sont ouvertes aux enfants de 3 à 6 ans au local UID, Rue du Temple 31 à Delémont.",
 			"Les animatrices proposent une première approche de la musique par l'écoute, le mouvement, le chant et des activités pensées pour les plus petits.",
 		],
 		points: [
-			"4 classes ouvertes au semestre de janvier à juin 2026",
+			"Quatre classes pour les enfants de 3 à 6 ans",
 			"Contact: lutins.musiciens@fanfareuid.ch / 079 544 73 88",
 		],
-		cta: {
-			label: "Inscription au semestre",
-			href: "https://forms.gle/62uwX92sA5RTzwZy5",
-			external: true,
-		},
 	},
 	lutinsDiscovery: {
 		title: "Session découverte",
 		kicker: "Avant-goût",
 		body: [
 			"Des sessions découvertes sont organisées deux fois par année pour permettre aux enfants et aux parents de vivre un premier moment du Jardin musical.",
-			"C'est l'occasion de rencontrer l'équipe, d'essayer l'ambiance et de sentir ce qui sera proposé pendant le semestre.",
+			"La prochaine session a lieu le samedi 21 novembre 2026, de 9h à 10h, au local UID. Jeux musicaux, mouvement, bricolage et découverte des sons sont au programme.",
 		],
 		points: [
 			"Pour les enfants de 3 à 6 ans",
-			"Contact: 079 544 73 88 ou lutins.musiciens@fanfareuid.ch",
+			"Gratuit, sur inscription — 079 544 73 88 ou lutins.musiciens@fanfareuid.ch",
 		],
 		cta: {
 			label: "Inscription à la session",
-			href: "https://forms.gle/MQiwYkSGVK7kJYqaA",
+			href: "https://docs.google.com/forms/d/e/1FAIpQLSc86eUzH4p_5RsUEmaQZfLZCdSxn1wrQMWZA5jx506WppOB4Q/viewform?usp=preview",
 			external: true,
 		},
 	},
@@ -272,19 +286,6 @@ export const contentPages = {
 		image: null,
 		reverse: true,
 	},
-	cadets: {
-		title: "Cadets",
-		description: "Formation musicale des jeunes de l'Union Instrumentale de Delémont.",
-		hero: {
-			title: "Cadets UID",
-			kicker: "Jeunes musiciens",
-			text: "Apprendre un instrument, jouer en groupe et rejoindre une aventure musicale locale.",
-			image: "/images/cadets.jpg",
-		},
-		block: "cadets",
-		image: "/images/logo_union_davenir.png",
-		className: "content-flow--compact-media",
-	},
 } satisfies Record<string, ContentPageConfig>;
 
 export const lutinsSchedule = {
@@ -297,7 +298,7 @@ export const lutinsSchedule = {
 	practicalDetails: [
 		"Fréquence: une fois par semaine, hors vacances scolaires",
 		"Semestre d'automne: août à janvier, inscription jusqu'au 30 juin",
-		"Semestre de printemps: février à juillet, inscription jusqu'au 30 novembre",
+		"Semestre de printemps: février à juillet, inscriptions ouvertes fin novembre 2026",
 		"Prix: 120 CHF par enfant pour un semestre",
 		"Lieu: Local UID, Rue du Temple 31, 2800 Delémont",
 	],

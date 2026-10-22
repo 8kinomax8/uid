@@ -16,7 +16,7 @@ const hasActiveChild = (item: (typeof navigation)[number]) => item.children?.som
 		{
 			navigation.map((item) => (
 				<div class:list={["nav-cluster", { "is-active": isActive(item.href) || hasActiveChild(item) }]}>
-					<a href={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
+					<a href={item.href} aria-current={currentPath === item.href ? "page" : undefined}>
 						{item.label}
 					</a>
 					{item.children && (
@@ -42,14 +42,14 @@ const hasActiveChild = (item: (typeof navigation)[number]) => item.children?.som
 	</button>
 </header>
 
-<div class="menu-panel" id="site-menu" data-menu-panel data-lenis-prevent aria-hidden="true">
+<div class="menu-panel" id="site-menu" data-menu-panel data-lenis-prevent aria-hidden="true" inert>
 	<div class="menu-panel__inner">
 		<p class="menu-panel__label">Union Instrumentale Delémont</p>
 		<nav aria-label="Navigation mobile">
 			{
 				navigation.map((item) => (
 					<div class="menu-panel__group">
-						<a href={item.href} data-menu-link aria-current={isActive(item.href) ? "page" : undefined}>
+						<a href={item.href} data-menu-link aria-current={currentPath === item.href ? "page" : undefined}>
 							{item.label}
 						</a>
 						{item.children && (
