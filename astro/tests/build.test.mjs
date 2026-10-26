@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -12,7 +11,11 @@ const run=(args,env)=>new Promise(resolve=>{
  let output=''; child.stdout.on('data',chunk=>output+=chunk); child.stderr.on('data',chunk=>output+=chunk); child.on('close',code=>resolve({code,output}));
 });
 test('full static build: live contracts, safe text, empty/disabled state and CMS failure',async t=>{
- const temp=fs.mkdtempSync(path.join(os.tmpdir(),'uid-build-'));
+ // Astro renames assets from .astro/.prerender; keep outputs on that same device.
+ const buildRoot=path.join(project,'.astro');
+ fs.mkdirSync(buildRoot,{recursive:true});
+ const temp=fs.mkdtempSync(path.join(buildRoot,'uid-build-'));
+ t.after(()=>fs.rmSync(temp,{recursive:true,force:true}));
  let mode='populated';
  const server=http.createServer((req,res)=>{
   res.setHeader('Content-Type','application/json');
@@ -28,7 +31,7 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
   res.end(JSON.stringify(data));
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
- t.after(()=>{server.close();fs.rmSync(temp,{recursive:true,force:true});});
+ t.after(()=>server.close());
  const env={WORDPRESS_API_BASE:`http://127.0.0.1:${server.address().port}/wordpress/wp-json/wp/v2`,WORDPRESS_LUTINS_PAGE_ID:'11',WORDPRESS_AVENTURIERS_PAGE_ID:'12',WORDPRESS_CALENDAR_PAGE_ID:'13'};
  const populated=await run(['build','--outDir',path.join(temp,'populated')],env);
  assert.equal(populated.code,0,populated.output);
