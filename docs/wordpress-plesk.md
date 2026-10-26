@@ -1,171 +1,187 @@
-# Exploitation du site UID : Astro, WordPress et Plesk
+# UID DEV — GitHub Actions, WordPress headless et Plesk
 
-## Ce qui est fourni et ce qui reste à configurer
+Le build Astro est effectué sur GitHub Actions avec **Node.js 24**. Plesk reçoit uniquement les fichiers statiques et les publie avec Bash. Aucun Node, npm ou dépôt Git n’est nécessaire sur Plesk. Le frontend Astro/GSAP, les CPT et les champs ACF sont conservés.
 
-Le dépôt fournit le client REST, les composants Astro, l’extension `wordpress/uid-headless`, l’export `wordpress/cpt-ui.json`, le script de publication et les tests. Il ne contient aucun événement de démonstration destiné à la production. L’intégration n’installe rien automatiquement sur le WordPress existant et ne change aucune redirection.
+**Aucun déploiement n’a été exécuté par cette modification.** Le workflow est livré avec les automatismes désactivés par défaut. Le premier déploiement nécessite une action manuelle explicite après validation.
 
-**Avant toute mise en production**, un administrateur doit vérifier les prérequis ci-dessous, installer/configurer WordPress et Plesk et réaliser la recette en préproduction. Les chemins et IDs des exemples sont à remplacer ; ce ne sont pas des valeurs découvertes sur le serveur.
+## 1. Paramètres DEV confirmés
 
-## 1. Vérifier l’hébergement
+| Paramètre | Valeur |
+| --- | --- |
+| Dépôt / branche | `8kinomax8/uid` / `main` |
+| Frontend | `https://dev.fanfareuid.ch/` |
+| WordPress | `https://dev.fanfareuid.ch/wordpress/` |
+| API du build | `https://dev.fanfareuid.ch/wordpress/wp-json/wp/v2` |
+| SSH | `fanfareuid@ananke.kreativmedia.ch`, port **2121** |
+| Racine DEV | `/home/httpd/vhosts/fanfareuid.ch/dev.fanfareuid.ch` |
+| Répertoire privé DEV | `/home/httpd/vhosts/fanfareuid.ch/private/uid-dev` |
+| Bash / rsync | `/usr/bin/bash` / `/usr/bin/rsync` |
+| Shell de connexion | `/bin/sh` ; le workflow appelle Bash explicitement |
 
-Dans le panneau Plesk habituel (port 8433 indiqué par le propriétaire), relever :
+Les trois **IDs de pages WordPress DEV** restent à renseigner : Lutins, Aventuriers, Agenda. Ne pas recopier les IDs de production sans les vérifier dans DEV.
 
-- serveur Linux, racine documentaire réelle et utilisateur système de l’abonnement ;
-- extension Git, accès au dépôt privé GitHub par clé SSH de déploiement **en lecture seule** ;
-- Node >= 22.23.4 compatible avec Astro 7 (Node 24 LTS conseillé), `npm`, `git`, `tar` exécutables par le même utilisateur ;
-- exécution des actions Git et d’une tâche planifiée chaque minute ; vérifier le contexte chroot et les chemins visibles ;
-- PHP et WordPress maintenus, CPT UI et ACF gratuit disponibles ;
-- écriture par PHP et le worker dans le même répertoire privé, sans permissions 777 ;
-- accès HTTP du serveur à `/wordpress/wp-json/wp/v2/`, sans authentification pour les contenus publiés ;
-- origine exacte de la redirection `/` → `/wordpress/` : réglages Plesk, nginx, Apache `.htaccess` ou extension WordPress ;
-- certificat HTTPS valide pour le site et le webhook Plesk.
+Les chemins sont contrôlés dans les scripts. Changer seulement un secret ou un paramètre ne permet pas de déployer ailleurs. La racine et le répertoire privé doivent correspondre à leurs chemins physiques, sans résolution vers une autre destination par lien symbolique.
 
-Si un prérequis manque, arrêter la configuration de l’automatisation et faire adapter l’hébergement. Ne pas publier les sources dans `httpdocs` pour contourner une restriction chroot. Ne pas remplacer le webhook HTTPS par HTTP.
+## 2. Préparer le serveur une fois, sans publier Astro
 
-Sauvegarder la base WordPress, tous les fichiers existants, les réglages Plesk/nginx/Apache et les redirections. Vérifier une restauration avant la bascule. Conserver WordPress et son URL `/wordpress/`.
+Effectuer ces étapes avec la connexion administrative existante, pas avec la future clé GitHub restreinte. Sauvegarder d’abord WordPress DEV, ses fichiers et sa base. Ne modifier aucun réglage du domaine de production.
 
-## 2. Configurer WordPress
-
-1. Installer et activer **Custom Post Type UI** et **Advanced Custom Fields gratuit**. Ne pas installer ACF Pro, de page builder ou de plugin de synchronisation Google.
-2. Dans CPT UI → Outils → Importer les types de contenus, importer `wordpress/cpt-ui.json`. Si un type `evenements` existe déjà, comparer sa configuration et ses données avant import. Vérifier le slug REST `evenements`, les supports titre/image mise en avant/champs personnalisés et les capacités `evenement,evenements`.
-3. Créer trois pages administratives dédiées : « Session découverte — Lutins », « Session découverte — Aventuriers » et « Configuration — Agenda ». Les laisser en brouillon jusqu’à l’installation de l’extension. Relever leurs IDs dans l’URL d’édition. Elles servent de fiches de données, pas de pages Astro.
-4. Créer des répertoires privés sous l’abonnement, en dehors de la racine documentaire : `private/uid/state`, `private/uid/releases`, `private/uid/tools`. PHP et le worker doivent utiliser le même utilisateur système (fichiers de file en 0600) ; répertoires 0700. Si les utilisateurs diffèrent, faire exécuter la tâche sous l’utilisateur PHP ; sinon suspendre la configuration et adapter explicitement la stratégie de permissions avant utilisation.
-5. Ajouter dans `wp-config.php`, avant la ligne de fin, les valeurs réelles :
-
-```php
-define('UID_DOCUMENT_ROOT', '/var/www/vhosts/fanfareuid.ch/httpdocs');
-define('UID_STATE_DIR', '/var/www/vhosts/fanfareuid.ch/private/uid/state');
-define('UID_LUTINS_PAGE_ID', 123);
-define('UID_AVENTURIERS_PAGE_ID', 124);
-define('UID_CALENDAR_PAGE_ID', 125);
-```
-
-6. Copier uniquement `wordpress/uid-headless/` dans `wordpress/wp-content/plugins/uid-headless/`, puis activer **UID Headless**. Le JSON ACF inclus est chargé automatiquement par l’extension : **ne pas l’importer aussi dans ACF**, cela créerait une seconde définition. Les règles d’emplacement sont calculées à partir des IDs. L’export reste lisible et importable si une migration manuelle est nécessaire, après adaptation des IDs et désactivation des définitions automatiques.
-7. Régler le fuseau WordPress sur **Europe/Zurich**, pas sur un décalage UTC fixe. Ouvrir les trois fiches, enregistrer les deux sessions désactivées et le calendrier vide ou configuré, puis les publier. Leur contenu doit être public pour la lecture REST ; ne pas y stocker de données privées.
-8. Créer les comptes responsables avec le rôle **Responsable UID**. Le menu « Site UID » donne accès aux trois fiches et au statut de publication. Le rôle peut gérer les événements et envoyer des médias, mais ne reçoit pas l’édition générale des pages, la gestion des extensions ou celle des utilisateurs. Vérifier ces droits avec un compte réel de recette.
-9. Vérifier les API ci-dessous dans une fenêtre non connectée. Le groupe ACF doit être exposé ; le JSON fourni active `show_in_rest`.
+1. Supprimer/désactiver les **anciens déclencheurs de build Node Plesk** : action Git `uid-deploy.mjs`, tâche `worker` Node et ancien webhook GitHub → Plesk. Les nouveaux scripts ne les utilisent plus. Ne pas supprimer WordPress ni les sauvegardes existantes.
+2. Créer les répertoires privés ci-dessous avec accès limité à l’utilisateur `fanfareuid` et au PHP de WordPress DEV. PHP et SSH doivent pouvoir partager `cms-state` ; vérifier les utilisateurs réellement utilisés avant de régler les permissions. Ne pas utiliser 777.
 
 ```text
-/wordpress/wp-json/wp/v2/evenements?per_page=100&page=1
-/wordpress/wp-json/wp/v2/pages/123
-/wordpress/wp-json/wp/v2/pages/124
-/wordpress/wp-json/wp/v2/pages/125
-/wordpress/wp-json/wp/v2/media/ID
+/home/httpd/vhosts/fanfareuid.ch/private/uid-dev/
+├── bin/                  # scripts installés manuellement
+├── incoming/             # staging rsync, jamais une racine web
+├── releases/             # trois versions statiques publiées
+├── state/                # manifeste, historique, initialisation
+├── cms-state/            # file WordPress, signatures et statut GitHub
+└── server.env            # configuration privée
 ```
 
-Le CPT conserve l’accès REST public mais pas de pages publiques d’événements dans le thème WordPress. Les pages de configuration peuvent encore être visibles dans l’ancien thème pendant la transition : les exclure des menus. Après bascule, appliquer `X-Robots-Tag: noindex` aux réponses sous `/wordpress/` via la configuration serveur, sans bloquer l’API ni les médias. Ne pas activer aveuglément l’option WordPress « décourager les moteurs », qui pourrait affecter le robots.txt du domaine.
+Si l’ancienne configuration WordPress possède déjà des fichiers `pending-*.json`, les copier du précédent répertoire privé vers `cms-state` avant activation, sans les acquitter. Ne pas recopier l’ancien état Node (`current.json`, historique et verrous) dans le nouvel état Bash.
 
-### Champs et formats
+3. Copier par SFTP `deploy/uid-publish.sh` et `deploy/uid-ssh-gate.sh` dans `bin/`, puis `deploy/server.dev.example.env` vers `server.env`. Répertoires 0700, configuration et scripts 0600 conviennent : Bash est invoqué explicitement. Vérifier que les droits du PHP DEV permettent son accès à `cms-state` (fichiers en 0600).
+4. Dans **la racine DEV confirmée uniquement**, créer le petit fichier d’attestation `.uid-dev-target` contenant exactement `dev.fanfareuid.ch`. Ce fichier ne sera pas modifié par la publication. Ne jamais le créer dans la racine de production.
+5. Vérifier la configuration en lecture seule :
 
-| Fiche | Champs |
+```sh
+/usr/bin/bash /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/bin/uid-publish.sh \
+  /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/server.env check
+```
+
+Ce contrôle ne publie rien et ne marque pas le site comme initialisé. Vérifier aussi la présence de `sha256sum` ou `shasum`, et des utilitaires usuels `awk`, `find`, `sort`, `cp`, `mv`, `mktemp`. Les scripts n’utilisent pas PHP CLI sur Plesk.
+
+### Clé SSH dédiée à GitHub
+
+Générer localement une nouvelle clé Ed25519 dédiée au DEV, sans réutiliser une clé de production. Conserver la clé privée dans le secret GitHub décrit plus bas.
+
+Ajouter **uniquement sa clé publique** dans `~fanfareuid/.ssh/authorized_keys`, précédée de cette restriction (une seule ligne) :
+
+```text
+command="/usr/bin/bash /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/bin/uid-ssh-gate.sh",no-agent-forwarding,no-port-forwarding,no-X11-forwarding,no-pty ssh-ed25519 CLE_PUBLIQUE uid-github-dev
+```
+
+Le garde autorise seulement le script DEV et le récepteur rsync dans `incoming/`. Il refuse le shell général, les transferts vers la racine web, les options de suppression et le suivi des répertoires symboliques. Ne pas placer cette restriction sur la clé administrative existante.
+
+Obtenir l’empreinte de la clé hôte SSH via une source de confiance (hébergeur ou connexion déjà vérifiée). Un `ssh-keyscan -p 2121 ananke.kreativmedia.ch` peut collecter la clé, mais **ne prouve pas son authenticité** : comparer son empreinte avant de l’utiliser. La ligne `known_hosts` doit identifier `[ananke.kreativmedia.ch]:2121`. Le workflow impose `StrictHostKeyChecking=yes` et n’accepte pas automatiquement une nouvelle clé.
+
+## 3. Configurer WordPress DEV
+
+Conserver CPT UI, ACF gratuit, le CPT `evenements` et les deux fiches de sessions. L’API DEV et les champs ACF sont déjà opérationnels d’après les vérifications du propriétaire. Mettre à jour le dossier `wordpress/uid-headless/` **sur DEV uniquement**, en incluant le nouveau fichier `deployment.php`.
+
+Configurer `wp-config.php` **DEV uniquement**, avant la ligne de fin :
+
+```php
+define('UID_DOCUMENT_ROOT', '/home/httpd/vhosts/fanfareuid.ch/dev.fanfareuid.ch');
+define('UID_STATE_DIR', '/home/httpd/vhosts/fanfareuid.ch/private/uid-dev/cms-state');
+define('UID_DEPLOY_ENVIRONMENT', 'development');
+define('UID_LUTINS_PAGE_ID', ID_PAGE_DEV_LUTINS);
+define('UID_AVENTURIERS_PAGE_ID', ID_PAGE_DEV_AVENTURIERS);
+define('UID_CALENDAR_PAGE_ID', ID_PAGE_DEV_AGENDA);
+define('UID_CMS_HMAC_SECRET', 'SECRET_HEXADECIMAL_DE_64_CARACTERES');
+define('UID_GITHUB_TOKEN', 'JETON_GITHUB_DEDIE');
+define('UID_GITHUB_DEPLOY_ENABLED', false); // garder false jusqu’après le premier déploiement validé
+```
+
+Les valeurs `ID_PAGE_...` et les secrets sont des paramètres à remplacer, pas des valeurs exécutables à copier telles quelles. Générer le secret HMAC avec `openssl rand -hex 32`. Mettre exactement le même secret dans GitHub. Ne committer aucun secret et ne les stocker ni dans les champs ACF ni dans le navigateur.
+
+Créer un **fine-grained personal access token** GitHub limité au dépôt `8kinomax8/uid`, permission **Actions: write**, avec date d’expiration. Ce jeton est conservé seulement dans `wp-config.php` DEV ; il permet de demander le workflow `uid-dev.yml` sur `main`. Planifier sa rotation avant expiration. Les jetons classiques au scope global `repo` ne sont pas nécessaires.
+
+### Déclenchement fiable et acquittement
+
+- Une sauvegarde terminée, une dépublication, une suppression ou un changement de média crée un marqueur persistant dans `cms-state`.
+- Une tâche WordPress chaque minute regroupe ces changements et appelle l’API `workflow_dispatch` de GitHub en HTTPS, sans suivre les redirections.
+- Une acceptation par GitHub **n’efface pas** les modifications. Avant le build, Actions prend un snapshot signé des marqueurs ; après une publication réussie seulement, il acquitte ce snapshot.
+- Les modifications arrivées pendant le build restent en attente. Les échecs HTTP sont réessayés avec un délai croissant. Une demande acceptée mais sans succès confirmé est réessayée après 30 minutes, y compris si un run a été annulé.
+- Les appels snapshot/ack/fail utilisent HMAC-SHA256, un timestamp limité à cinq minutes, un nonce à usage unique et un token de snapshot lié au run. Aucune clé GitHub ou SSH n’est exposée dans cet endpoint.
+- Le menu « Site UID » affiche le dernier succès, les erreurs et le nombre de modifications en attente. Une copie de l’extension sur un WordPress de production ne peut pas déclencher DEV : le domaine DEV et l’environnement sont vérifiés.
+
+**Ne pas dépendre des visites pour WP-Cron.** Dans les tâches planifiées Plesk DEV, choisir une récupération d’URL chaque minute vers :
+
+```text
+https://dev.fanfareuid.ch/wordpress/wp-cron.php
+```
+
+Vérifier l’exécution réelle et les éventuelles protections HTTP de DEV. Après ce contrôle seulement, l’option `DISABLE_WP_CRON` peut être activée si elle est souhaitée pour éviter les déclenchements par les visites. Aucun Node ou npm n’intervient. Les modifications de médias peuvent provoquer une reconstruction même si le média n’est pas utilisé, par prudence.
+
+### Contrats de contenus conservés
+
+| Contenu | Champs |
 | --- | --- |
-| Événement | titre natif, image mise en avant native, `description` (texte), `date_heure` (`Y-m-d H:i:s` suisse), `lieu`, `lien_externe` facultatif |
-| Galerie | `meta.uid_gallery_ids`, liste d’IDs d’images ordonnée ; boutons ajouter/retirer/monter/descendre dans la fiche |
-| Session | `session_active`, `session_affiche` (ID média), `session_date` (ACF stocke `Ymd`), `session_heure_debut` et `session_heure_fin` (`H:i:s`), `session_inscription_url`, `session_description` facultative |
-| Agenda | `google_calendar_id`, identifiant public Google, pas le code iframe ni une URL secrète iCal |
+| Événement | titre et image mise en avant natifs ; `description`, `date_heure` (`Y-m-d H:i:s`, Europe/Zurich), `lieu`, `lien_externe` facultatif |
+| Galerie | `meta.uid_gallery_ids`, IDs ordonnés via le sélecteur natif de médias |
+| Session | `session_active`, `session_affiche`, `session_date`, `session_heure_debut`, `session_heure_fin`, `session_inscription_url`, `session_description` facultative |
+| Agenda | `google_calendar_id` : identifiant du calendrier Google public |
 
-Le client accepte la date de session ACF brute `Ymd` et sa forme formatée `Y-m-d`. Un horaire inexistant lors du passage à l’heure d’été est refusé ; lors de l’heure répétée en automne, la première occurrence est retenue. Un événement reste affiché jusqu’à la fin de sa journée suisse. Les sessions restent visibles tant que leur case est activée : pas de désactivation implicite par date.
+Le groupe ACF est chargé par l’extension depuis `acf-fields.json` ; ne pas l’importer une seconde fois. `wordpress/cpt-ui.json` reste disponible pour une installation vierge, sans écraser une configuration existante. Les sessions désactivées ne produisent aucun bloc. Les textes fixes restent dans Astro. Tous les événements à venir sont affichés, triés selon leur date suisse, sans données fictives de secours.
 
-L’image principale est obligatoire pour un événement publié. Les autres photos restent facultatives. Renseigner les textes alternatifs dans la médiathèque. Les images sont conservées dans `wp-content/uploads/`. Préférer des fichiers déjà dimensionnés/compressés pour le web : ils ne sont pas téléchargés dans `dist`.
+## 4. Configurer GitHub
 
-Les fiches invalides sont bloquées dans le formulaire ACF ou par la REST API. Une publication via édition rapide ou code contournant ce formulaire est rabattue en brouillon si les champs requis sont invalides. Les descriptions sont rendues en texte échappé, pas en HTML libre.
+Créer l’environnement **development** dans Settings → Environments. Restreindre ses déploiements à `main` et protéger cette branche. Des reviewers obligatoires peuvent être utilisés pour la validation initiale ; s’ils restent obligatoires ensuite, chaque reconstruction attendra leur approbation.
 
-Ne recopier les anciennes sessions ou cartes de démonstration qu’après validation éditoriale. Les contacts généraux et textes fixes restent dans Astro. Les anciennes dates des sessions ne sont plus utilisées comme secours.
+### Secrets de l’environnement development
 
-### Google Calendar
+| Secret | Contenu |
+| --- | --- |
+| `DEV_SSH_PRIVATE_KEY` | Clé privée dédiée dont la clé publique est restreinte ci-dessus |
+| `DEV_SSH_KNOWN_HOSTS` | Ligne(s) de clé hôte vérifiée(s) pour `[ananke.kreativmedia.ch]:2121` |
+| `UID_CMS_HMAC_SECRET` | Même secret hexadécimal de 64 caractères que WordPress DEV |
 
-Dans Google Calendar, sélectionner le calendrier destiné au public, rendre **ce calendrier** public et copier son identifiant dans « Intégrer l’agenda ». Vérifier son affichage en navigation privée avant de le mettre dans WordPress. Ne pas rendre public un agenda interne.
+Le jeton WordPress `UID_GITHUB_TOKEN` n’est pas nécessaire dans les secrets Actions.
 
-L’agenda affiche Google dans une iframe et conserve un lien d’ouverture externe utilisable si l’intégration est bloquée. Google gère les rendez-vous d’Agenda ; WordPress gère les cartes de l’accueil. Aucun événement n’est copié automatiquement d’une source à l’autre. Le chargement de l’iframe contacte Google ; intégrer ce fonctionnement dans l’information de confidentialité du site avant lancement. Une modification de rendez-vous Google ne nécessite pas de build Astro ; un changement d’identifiant de calendrier en nécessite un.
+### Variables de l’environnement development
 
-## 3. Configurer le build et la publication Plesk
+- `DEV_WORDPRESS_LUTINS_PAGE_ID`
+- `DEV_WORDPRESS_AVENTURIERS_PAGE_ID`
+- `DEV_WORDPRESS_CALENDAR_PAGE_ID`
 
-### Répertoires et configuration
+### Variable du dépôt, pas de l’environnement
 
-Configurer le dépôt Git distant GitHub dans Plesk. La cible de checkout doit être **hors `httpdocs`**, par exemple `private/uid/checkout`. Relever également le chemin du véritable dépôt Git créé par Plesk : c’est ce chemin (bare ou non) qu’utilise `repository` dans la configuration, et non un dossier sans `.git`.
+`UID_DEV_AUTO_DEPLOY` : laisser absente ou `false` pendant toute la préparation. Le garde de job doit pouvoir la lire avant de charger l’environnement development. Passer à `true` seulement **après** le premier déploiement manuel validé.
 
-Copier `deploy/uid-deploy.mjs` dans `private/uid/tools/`. Le lanceur est installé explicitement et reste stable ; une future mise à jour du lanceur doit être vérifiée puis recopiée séparément du déploiement du site.
+L’URL de l’API, le domaine DEV, l’hôte SSH, le port, l’utilisateur et le répertoire privé sont fixés aux valeurs confirmées. Le workflow refuse les IDs manquants/dupliqués, une API de production et les redirections API. Les médias retournés par WordPress doivent aussi appartenir au domaine DEV. Si une copie de WordPress conserve des URLs de médias de production, corriger ces références sur DEV avant le build, sans assouplir ce garde. Les métadonnées canoniques du build DEV utilisent DEV avec `noindex, nofollow`.
 
-Copier `deploy/config.example.json` vers `private/uid/config.json`, permissions 0600. Remplacer tous les chemins, la référence Git déployée, le binaire npm et les IDs WordPress. Les chemins doivent exister et être disjoints de la racine publique. Pour un clone Plesk, vérifier la référence avec `git show-ref` plutôt que supposer `refs/heads/main`.
+## 5. Valider puis lancer le premier déploiement manuellement
 
-Le PATH des actions et des tâches doit contenir **le même Node que npm**, ainsi que `git` et `tar`. Exemple à adapter au Node installé :
+1. Relire, committer et pousser les fichiers. Tant que `UID_DEV_AUTO_DEPLOY` est absente/false et que WordPress garde son automatisation désactivée, ce push **ne déploie pas**.
+2. Dans Actions → **UID DEV — build and deploy** → Run workflow, sélectionner `main`, `action=validate`, `source=manual`, `first_deployment=false`. Cette action effectue les tests et le build réel via WordPress DEV, puis conserve un artifact statique 14 jours. Elle ne se connecte pas au serveur SSH et n’acquitte pas la file WordPress.
+3. Examiner l’artifact, les journaux, l’API DEV, les IDs et la configuration serveur. Vérifier une restauration de la sauvegarde WordPress DEV séparément.
+4. Contrôler les fichiers déjà présents dans la racine DEV. Le premier déploiement refusera toute collision avec un fichier existant non géré, même `index.html`. Sauvegarder puis déplacer manuellement seulement les fichiers explicitement remplacés ; ne pas supprimer WordPress, `.htaccess`, `index.php` ou les autres fichiers inconnus. Vérifier la priorité `index.html` dans nginx/Apache sur DEV.
+5. **Après validation humaine**, lancer `action=deploy`, `source=manual`, `first_deployment=true`. Aucun script n’a effectué cette étape pour vous. Le script enregistre l’initialisation uniquement après une publication réussie.
+6. Vérifier l’accueil, les deux pages jeunesse, l’agenda, les médias et `/wordpress/wp-admin/` sur DEV. Ne modifier aucune redirection de production.
+7. Pour activer ensuite les automatismes, passer la variable **du dépôt** `UID_DEV_AUTO_DEPLOY=true` et `UID_GITHUB_DEPLOY_ENABLED=true` dans WordPress DEV. Un push sur `main` ou une modification WordPress DEV déclenchera alors un build et une publication DEV. Tester un vrai changement éditorial puis son acquittement.
 
-```sh
-export PATH=/opt/plesk/node/24/bin:/usr/local/bin:/usr/bin:/bin
-node /var/www/vhosts/fanfareuid.ch/private/uid/tools/uid-deploy.mjs check /var/www/vhosts/fanfareuid.ch/private/uid/config.json
-```
+Les reconstructions planifiées Actions tournent à 23:15 et 00:15 UTC pour retirer quotidiennement les événements passés malgré le changement d’heure suisse. Elles sont soumises au même garde d’activation ; elles peuvent être retardées par GitHub et ne garantissent pas un retrait exactement à minuit.
 
-Le mode `check` ne publie rien. Il contrôle les chemins, les exécutables, la version de Node, les permissions et la référence Git. Il ne peut pas vérifier à lui seul les réglages du panneau, le cron, les sauvegardes ou la redirection.
+## 6. Garanties de publication et restauration
 
-Pour le développement local, copier `astro/.env.example` en `astro/.env` et renseigner les valeurs de la préproduction. Un build sans configuration échoue volontairement. Aucun mode de démonstration ne permet de publier silencieusement des contenus inventés.
+Rsync envoie uniquement vers `private/uid-dev/incoming/RUN-ATTEMPT/`, **sans `--delete`**. Il n’est jamais lancé sur la racine publique. Un manifeste SHA-256 liste les fichiers autorisés ; le serveur refuse les chemins dangereux, `/wordpress/`, les fichiers PHP, sources, secrets, liens symboliques et fichiers supplémentaires.
 
-### GitHub → Plesk
+Le moteur vérifie tous les fichiers existants avant de modifier la racine. Un fichier non géré n’est ni écrasé ni supprimé. Un fichier géré modifié hors déploiement provoque un arrêt pour inspection. Les assets sont publiés avant le HTML. Les suppressions ne concernent que les fichiers de l’ancien manifeste absents du nouveau ; les anciens assets Astro des versions récentes sont conservés pour les pages déjà ouvertes.
 
-Activer le déploiement automatique du checkout privé et ajouter l’action suivante dans les actions de déploiement Plesk, avec les chemins réels :
+Deux protections empêchent les publications concurrentes : groupe GitHub unique `uid-development` avec file d’attente et sans annuler un run en cours, puis verrou serveur. Les builds GitHub prennent le dernier `main` au démarrage, y compris pour WordPress. Les trois dernières versions statiques publiées sont conservées dans le répertoire privé. Un journal permet la restauration des fichiers gérés si la publication échoue.
 
-```sh
-export PATH=/opt/plesk/node/24/bin:/usr/local/bin:/usr/bin:/bin
-node /var/www/vhosts/fanfareuid.ch/private/uid/tools/uid-deploy.mjs git /var/www/vhosts/fanfareuid.ch/private/uid/config.json
-```
+### Rollback manuel
 
-Dans GitHub → Settings → Webhooks, ajouter **l’URL HTTPS générée par Plesk**, événement `push`, puis vérifier la réception côté Plesk. Traiter cette URL comme une capacité privée ; ne pas la committer. Seule la référence Git configurée est construite.
+Consulter `private/uid-dev/state/history` pour les trois IDs de versions disponibles (`RUN_ID-ATTEMPT`). Dans Run workflow, sélectionner `action=rollback`, `source=manual`, `first_deployment=false`, puis saisir l’ID dans `release`. Le rollback utilise la copie statique conservée sur le serveur : pas de rebuild ni de dépendance à l’API WordPress. Il n’acquitte aucun contenu en attente.
 
-Commiter et pousser les changements relus avant le premier déploiement : le lanceur ignore volontairement les modifications non commitées.
+Pour conserver durablement une version restaurée pendant un incident, désactiver d’abord `UID_DEV_AUTO_DEPLOY` et `UID_GITHUB_DEPLOY_ENABLED` ; sinon une modification en attente ou un push republiera le dernier `main`. Les médias restent hébergés dans WordPress : restaurer Astro ne récupère pas une image supprimée dans WordPress. La sauvegarde WordPress reste indispensable.
 
-Le lanceur archive le commit dans un répertoire isolé, exécute `npm ci` puis `npm run build`, valide `dist` et publie les assets avant le HTML. Les sources, dépendances, journaux et secrets ne sont jamais copiés dans la racine publique. Chaque commande de construction est limitée à quinze minutes ; une construction échouée est nettoyée et ses signaux restent en attente. Il refuse les collisions avec des fichiers qu’il ne gère pas, les liens symboliques et toute destination sous `wordpress/`.
+### Interruption brutale
 
-**Premier déploiement :** si `index.html` ou d’autres destinations Astro existent déjà, ne pas désactiver cette protection. Les inventorier, les sauvegarder hors web et déplacer uniquement les fichiers explicitement remplacés. Ne pas toucher à `wordpress/`, à `.htaccess`, à `index.php` ni aux autres fichiers inconnus. Vérifier l’ordre `DirectoryIndex` nginx/Apache pour que `index.html` serve Astro sans supprimer `index.php`.
-
-### WordPress → reconstruction locale
-
-Créer une tâche Plesk chaque minute, sous le même utilisateur :
-
-```sh
-export PATH=/opt/plesk/node/24/bin:/usr/local/bin:/usr/bin:/bin
-node /var/www/vhosts/fanfareuid.ch/private/uid/tools/uid-deploy.mjs worker /var/www/vhosts/fanfareuid.ch/private/uid/config.json
-```
-
-Configurer Plesk pour notifier l’administrateur en cas d’échec de tâche. Les sorties peuvent être dirigées vers un journal **privé** avec rotation. Le statut synthétique est aussi visible dans « Site UID ».
-
-L’extension crée des marqueurs après sauvegarde complète, y compris pour les suppressions, changements de statut et modifications de médias. Le worker regroupe les marqueurs présents au démarrage. Il n’efface aucun signal arrivé pendant le build et ne les acquitte pas après un échec. Les modifications de médias peuvent déclencher un build même si le média n’est pas utilisé, par prudence.
-
-Git et WordPress partagent un verrou. Un push arrivé pendant un build est conservé dans la file Git. Sans push en attente, une reconstruction de contenu repart du dernier commit publié, pas de fichiers du checkout éventuellement modifiés. Le premier lancement doit être explicite en mode `git` ; le worker ne publie jamais seul une première version.
-
-Le worker reconstruit aussi lors du premier passage de chaque journée suisse pour retirer les événements passés. Délai habituel : une minute plus la durée du build ; aucun délai maximal n’est garanti si WordPress ou le serveur est indisponible.
-
-## 4. Recette et bascule
-
-Préproduction protégée, avec copie séparée de WordPress et répertoires de déploiement séparés :
-
-- créer/modifier/supprimer/dépublier un événement, remplacer son image, ordonner sa galerie ;
-- vérifier toutes les pages REST au-delà de 100 événements, les événements du jour et leur retrait le lendemain ;
-- activer/désactiver chaque session indépendamment, vérifier l’absence de bloc vide et la présence du contact Aventuriers ;
-- vérifier agenda public, lien externe, état agenda vide et blocage de l’iframe ;
-- tester au clavier la lightbox et la navigation, mobile, thèmes clair/sombre et réduction des animations ;
-- provoquer une panne REST et vérifier que les pages publiées ne changent pas ;
-- enregistrer une modification pendant un build et pousser un commit pendant celui-ci : vérifier le passage suivant ;
-- vérifier les comptes Responsable UID et leur absence d’accès aux autres pages/réglages ;
-- tester restauration et absence d’accès web à `.git`, `node_modules`, sources, configuration et journaux.
-
-Avant bascule, sauvegarder à nouveau WordPress et les réglages. Publier Astro, vérifier les fichiers et l’API, puis retirer **uniquement** la règle identifiée qui redirige la racine vers `/wordpress/`. Vérifier `/`, `/agenda/`, les pages jeunesse, les médias et `/wordpress/wp-admin/`. Conserver les règles WordPress dans son sous-dossier et les règles serveur non liées à l’ancienne redirection.
-
-## 5. Rollback et incidents
-
-Les trois dernières versions publiées sont conservées. Le fichier privé `state/current.json` contient leurs IDs dans `history`. Pour revenir à une version :
+Si `publish.lock` subsiste, consulter son fichier `pid` et vérifier qu’aucune publication n’est encore active avant de retirer ce seul verrou avec la connexion administrative. **Ne pas effacer `transaction/`.** Exécuter ensuite, avec la connexion administrative :
 
 ```sh
-node /var/www/vhosts/fanfareuid.ch/private/uid/tools/uid-deploy.mjs rollback /var/www/vhosts/fanfareuid.ch/private/uid/config.json ID_VERSION
+/usr/bin/bash /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/bin/uid-publish.sh \
+  /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/server.env recover
 ```
 
-Le rollback conserve les signaux de contenu en attente : le worker les reconstruira sur le commit restauré. Pour geler exactement une ancienne version pendant un incident, suspendre temporairement la tâche et les actions Git dans Plesk avant le rollback. Réactiver après résolution. Les photos restent des URLs WordPress : le rollback Astro ne restaure pas un média supprimé ; utiliser la sauvegarde WordPress pour cela.
+La récupération restaure le journal précédent sans nouvelle publication. Si elle échoue, conserver le verrou et le journal pour inspection. La publication n’est pas un échange atomique de toute la racine ; une requête peut traverser brièvement deux générations de HTML. Les copies de fichiers sont atomiques et les assets précédents sont conservés.
 
-La publication utilise un journal de transaction privé et une copie de sauvegarde des fichiers gérés. En cas d’erreur détectée, elle restaure les fichiers précédents. Elle n’est pas un échange atomique de toute la racine : des requêtes peuvent traverser brièvement deux générations de HTML, mais les anciens assets hachés sont conservés avec les versions récentes.
+Les uploads incomplets restent en staging privé et ne sont jamais servis. Après diagnostic, un administrateur peut nettoyer les anciens répertoires `incoming/RUN-ATTEMPT` dont les runs sont définitivement terminés. Ne pas supprimer les versions présentes dans `state/history` ni les marqueurs WordPress en attente.
 
-Après arrêt brutal du processus, le verrou reste volontairement en place. Vérifier dans `state/deploy.lock/owner.json` le PID et l’heure, confirmer que **plus aucun déploiement n’est actif**, puis retirer seulement ce répertoire de verrou. Ne jamais supprimer `state/transaction` : le lancement suivant l’utilise pour restaurer la version précédente avant de reprendre. Une récupération échouée nécessite l’intervention de l’administrateur ; ne pas effacer le journal.
-
-Pour rétablir l’ancien site, suspendre les deux déclencheurs, rétablir la redirection sauvegardée vers `/wordpress/` et vérifier WordPress. Ne supprimer aucun fichier WordPress pour revenir en arrière.
-
-## 6. Commandes de validation du dépôt
+## 7. Tests locaux et recette DEV
 
 Depuis `astro/` :
 
@@ -176,14 +192,16 @@ npm test
 npm run test:build
 ```
 
-Les tests TypeScript utilisent Node >=22.23.4 avec `--experimental-strip-types` ; les tests de build ouvrent une API simulée uniquement sur localhost et génèrent leurs sorties dans un répertoire temporaire supprimé en fin de test. Ces contenus ne sont jamais exportés dans `astro/dist`.
+Node 24 et Python 3 sont utilisés sur le poste de développement et dans GitHub Actions. Les tests ouvrent une API simulée **uniquement en local**, avec des sorties temporaires. Aucun de ces tests ne contacte SSH ou ne publie sur DEV.
 
-Sur un environnement PHP disposant de WordPress :
+Avec PHP local ou dans Actions :
 
 ```sh
 php -l wordpress/uid-headless/uid-headless.php
+php -l wordpress/uid-headless/deployment.php
+php wordpress/tests/deployment-test.php
 ```
 
-Le lint PHP ne remplace pas la recette WordPress/ACF/CPT UI réelle. L’import de configuration, les droits des comptes, les hooks de sauvegarde et les tâches Plesk doivent être vérifiés sur la préproduction.
+Les tests PHP simulent les hooks et l’API GitHub ; ils vérifient la signature, le refus des replays, les retries et l’acquittement des snapshots. Ils ne remplacent pas une recette avec WordPress/ACF réels : créer/modifier/dépublier/supprimer un événement, remplacer une image, désactiver chaque session, enregistrer pendant un build, provoquer une panne API, puis vérifier le rollback. Confirmer que WordPress DEV et les fichiers non gérés sont conservés et que la production est inchangée.
 
-Références : [ACF et REST](https://www.advancedcustomfields.com/resources/wp-rest-api-integration/), [pagination WordPress](https://developer.wordpress.org/rest-api/using-the-rest-api/pagination/), [Git distant Plesk](https://docs.plesk.com/en-US/obsidian/customer-guide/git-support/using-remote-git-hosting.75848/), [Google Calendar intégré](https://support.google.com/calendar/answer/41207?hl=fr).
+Références : [déclenchement workflow GitHub](https://docs.github.com/en/rest/actions/workflows), [concurrence Actions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), [WP-Cron via tâche système](https://developer.wordpress.org/plugins/cron/hooking-wp-cron-into-the-system-task-scheduler/).

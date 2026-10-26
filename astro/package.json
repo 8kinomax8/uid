@@ -11,7 +11,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
-    "test": "node --experimental-strip-types --test tests/wordpress.test.ts ../deploy/uid-deploy.test.mjs",
+    "test": "node --experimental-strip-types --test tests/wordpress.test.ts && python3 -m unittest discover -s ../deploy/tests -p 'test_*.py'",
     "test:build": "node --test tests/build.test.mjs"
   },
   "dependencies": {

@@ -1,19 +1,17 @@
 # Site UID — Astro + WordPress headless
 
-Astro statique, GSAP et Lenis. Le design et les textes fixes sont dans le dépôt ; les événements, sessions découvertes et la configuration Google Calendar viennent de WordPress au build.
+Astro statique, GSAP et Lenis. WordPress fournit événements, sessions découvertes et configuration Google Calendar au build. GitHub Actions construit avec **Node 24**, puis transfère le résultat vers **DEV uniquement** via SSH/rsync. Plesk n’a besoin ni de Node ni de npm.
 
-## Développement
-
-Node >=22.23.4, npm et une API WordPress configurée :
+## Développement et tests
 
 ```sh
 npm ci
 cp .env.example .env
-# Renseigner les quatre variables avec les valeurs de la préproduction.
+# Renseigner les trois IDs de pages WordPress DEV.
 npm run dev
 ```
 
-Un build sans configuration valide échoue. Aucun événement fictif de secours n’est publié.
+L’URL de l’API DEV est `https://dev.fanfareuid.ch/wordpress/wp-json/wp/v2`. Un build DEV refuse la production, les redirections API et les médias hébergés hors DEV. Aucun événement fictif de secours n’est publié.
 
 ```sh
 npm run check
@@ -22,6 +20,6 @@ npm run test:build
 ASTRO_TELEMETRY_DISABLED=1 npm run build
 ```
 
-Les tests de build utilisent une API simulée locale et des sorties temporaires ; ils ne nécessitent pas de WordPress réel et ne produisent pas de données de démonstration dans `dist/`.
+Les tests Python de publication s’exécutent dans des répertoires temporaires, sans SSH réel. Les tests de build utilisent une API simulée locale et des sorties temporaires, sans WordPress réel.
 
-Voir [le guide WordPress et Plesk](../docs/wordpress-plesk.md) pour l’installation, les contrats de champs, les scripts, la recette, la bascule et le rollback. L’extension se trouve dans `../wordpress/uid-headless/`, le lanceur dans `../deploy/`.
+Le [guide WordPress / GitHub Actions / Plesk](../docs/wordpress-plesk.md) décrit les clés SSH, les secrets, l’installation de l’extension et le rollback. Le workflow `.github/workflows/uid-dev.yml` reste bloqué pour les événements automatiques tant que `UID_DEV_AUTO_DEPLOY` n’est pas activée. Le premier déploiement doit être lancé manuellement après une exécution `validate` réussie.

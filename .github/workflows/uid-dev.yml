@@ -1,0 +1,164 @@
+name: UID DEV — build and deploy
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '15 23 * * *'
+    - cron: '15 0 * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'validate builds only; deploy publishes DEV; rollback restores a retained DEV release'
+        type: choice
+        options: [validate, deploy, rollback]
+        default: validate
+      source:
+        description: 'Use manual; wordpress is reserved for the signed-in CMS dispatcher'
+        type: choice
+        options: [manual, wordpress]
+        default: manual
+      first_deployment:
+        description: 'Explicitly initialize the first DEV deployment, after validation'
+        type: boolean
+        default: false
+      release:
+        description: 'Rollback only: retained release ID (run ID-attempt)'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uid-development
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  development:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      ((github.event_name == 'workflow_dispatch' && inputs.source == 'manual') ||
+       vars.UID_DEV_AUTO_DEPLOY == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: development
+    env:
+      ASTRO_TELEMETRY_DISABLED: '1'
+      DEPLOY_ENVIRONMENT: development
+      WORDPRESS_API_BASE: https://dev.fanfareuid.ch/wordpress/wp-json/wp/v2
+      WORDPRESS_LUTINS_PAGE_ID: ${{ vars.DEV_WORDPRESS_LUTINS_PAGE_ID }}
+      WORDPRESS_AVENTURIERS_PAGE_ID: ${{ vars.DEV_WORDPRESS_AVENTURIERS_PAGE_ID }}
+      WORDPRESS_CALENDAR_PAGE_ID: ${{ vars.DEV_WORDPRESS_CALENDAR_PAGE_ID }}
+      DEV_SSH_HOST: ananke.kreativmedia.ch
+      DEV_SSH_PORT: '2121'
+      DEV_SSH_USER: fanfareuid
+      DEV_REMOTE_PRIVATE_DIR: /home/httpd/vhosts/fanfareuid.ch/private/uid-dev
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Determine operation and enforce manual initialization
+        id: mode
+        env:
+          EVENT: ${{ github.event_name }}
+          REQUESTED: ${{ inputs.action }}
+          SOURCE: ${{ inputs.source }}
+          FIRST: ${{ inputs.first_deployment }}
+        run: |
+          operation="${REQUESTED:-deploy}"
+          if [[ "$FIRST" == true && ( "$EVENT" != workflow_dispatch || "$SOURCE" != manual || "$operation" != deploy ) ]]; then
+            echo 'First deployment must be an explicit manual deploy.' >&2
+            exit 1
+          fi
+          echo "operation=$operation" >> "$GITHUB_OUTPUT"
+          if [[ "$operation" != rollback ]]; then python3 deploy/actions.py environment; fi
+      - uses: actions/setup-node@v4
+        if: steps.mode.outputs.operation != 'rollback'
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: astro/package-lock.json
+      - uses: shivammathur/setup-php@v2
+        if: steps.mode.outputs.operation != 'rollback'
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Verify PHP dispatcher contracts
+        if: steps.mode.outputs.operation != 'rollback'
+        run: |
+          php -l wordpress/uid-headless/uid-headless.php
+          php -l wordpress/uid-headless/deployment.php
+          php wordpress/tests/deployment-test.php
+      - name: Install and verify
+        if: steps.mode.outputs.operation != 'rollback'
+        working-directory: astro
+        run: |
+          npm ci
+          npm run check
+          npm test
+          npm run test:build
+      - name: Capture pending WordPress changes before the build
+        if: steps.mode.outputs.operation == 'deploy'
+        env:
+          UID_CMS_HMAC_SECRET: ${{ secrets.UID_CMS_HMAC_SECRET }}
+        run: python3 deploy/actions.py snapshot --snapshot "$RUNNER_TEMP/uid-snapshot.json"
+      - name: Build exclusively from WordPress DEV
+        if: steps.mode.outputs.operation != 'rollback'
+        working-directory: astro
+        run: npm run build
+      - name: Validate static artifact
+        if: steps.mode.outputs.operation != 'rollback'
+        run: python3 deploy/actions.py manifest --manifest "$RUNNER_TEMP/uid-manifest.tsv"
+      - name: Store reviewable static artifact
+        if: steps.mode.outputs.operation != 'rollback'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uid-dev-${{ github.run_id }}-${{ github.run_attempt }}
+          path: astro/dist/
+          retention-days: 14
+          if-no-files-found: error
+      - name: Prepare SSH credentials
+        if: steps.mode.outputs.operation != 'validate'
+        env:
+          KEY: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEV_SSH_KNOWN_HOSTS }}
+        run: |
+          test -n "$KEY" && test -n "$KNOWN_HOSTS"
+          umask 077
+          printf '%s\n' "$KEY" > "$RUNNER_TEMP/uid-dev-key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/uid-dev-known-hosts"
+          echo "UID_SSH_KEY_FILE=$RUNNER_TEMP/uid-dev-key" >> "$GITHUB_ENV"
+          echo "UID_KNOWN_HOSTS_FILE=$RUNNER_TEMP/uid-dev-known-hosts" >> "$GITHUB_ENV"
+      - name: Deploy static files to the verified DEV root
+        if: steps.mode.outputs.operation == 'deploy'
+        env:
+          FIRST: ${{ inputs.first_deployment }}
+        run: |
+          args=()
+          if [[ "$FIRST" == true ]]; then args+=(--first); fi
+          python3 deploy/actions.py deploy --manifest "$RUNNER_TEMP/uid-manifest.tsv" \
+            --release "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" --commit "$(git rev-parse HEAD)" "${args[@]}"
+      - name: Acknowledge only the changes included in the published build
+        if: steps.mode.outputs.operation == 'deploy'
+        env:
+          UID_CMS_HMAC_SECRET: ${{ secrets.UID_CMS_HMAC_SECRET }}
+        run: python3 deploy/actions.py ack --snapshot "$RUNNER_TEMP/uid-snapshot.json"
+      - name: Roll back DEV to a retained static release
+        if: steps.mode.outputs.operation == 'rollback'
+        env:
+          RELEASE: ${{ inputs.release }}
+        run: python3 deploy/actions.py rollback --release "$RELEASE"
+      - name: Report failure without acknowledging pending content
+        if: failure() && steps.mode.outputs.operation == 'deploy'
+        env:
+          UID_CMS_HMAC_SECRET: ${{ secrets.UID_CMS_HMAC_SECRET }}
+        run: |
+          if [[ -f "$RUNNER_TEMP/uid-snapshot.json" ]]; then
+            python3 deploy/actions.py fail --snapshot "$RUNNER_TEMP/uid-snapshot.json"
+          fi
+      - name: Remove temporary SSH credentials
+        if: always()
+        run: rm -f -- "$RUNNER_TEMP/uid-dev-key" "$RUNNER_TEMP/uid-dev-known-hosts"

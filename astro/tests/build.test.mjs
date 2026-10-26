@@ -8,7 +8,7 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 const project = fileURLToPath(new URL('..',import.meta.url));
 const run=(args,env)=>new Promise(resolve=>{
- const child=spawn(process.execPath,['node_modules/astro/bin/astro.mjs',...args],{cwd:project,env:{...process.env,...env,ASTRO_TELEMETRY_DISABLED:'1'}});
+ const child=spawn(process.execPath,['node_modules/astro/bin/astro.mjs',...args],{cwd:project,env:{...process.env,...env,DEPLOY_ENVIRONMENT:'test',ASTRO_TELEMETRY_DISABLED:'1'}});
  let output=''; child.stdout.on('data',chunk=>output+=chunk); child.stderr.on('data',chunk=>output+=chunk); child.on('close',code=>resolve({code,output}));
 });
 test('full static build: live contracts, safe text, empty/disabled state and CMS failure',async t=>{

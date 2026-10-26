@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: UID Headless
- * Description: Contrats ACF, galerie et reconstruction locale du site Astro UID.
- * Version: 1.0.0
+ * Description: Contrats ACF, galerie et reconstruction GitHub Actions du site Astro UID.
+ * Version: 1.1.0
  */
 if (!defined('ABSPATH')) { exit; }
 
@@ -26,6 +26,7 @@ function uid_state_dir() {
     return $dir;
 }
 function uid_queue_rebuild($id = 0) {
+    if (!uid_deploy_is_dev()) { return; }
     if ($id && (wp_is_post_revision($id) || wp_is_post_autosave($id))) { return; }
     if ($id && !uid_is_content($id) && get_post_type($id) !== 'attachment') { return; }
     $dir = uid_state_dir();
@@ -202,10 +203,11 @@ add_action('admin_menu', function () {
         $dir = uid_state_dir();
         if (!$dir) { echo '<p>Reconstruction non configurée : contactez l’administrateur.</p>'; }
         else {
-            $status = is_file($dir . '/status.json') ? json_decode(file_get_contents($dir . '/status.json'), true) : array();
+            $status = is_file($dir . '/deployment-status.json') ? json_decode(file_get_contents($dir . '/deployment-status.json'), true) : array();
             echo '<p>Dernière publication : ' . esc_html($status['lastSuccess'] ?? 'aucune') . '</p>';
             echo '<p>État : ' . esc_html($status['state'] ?? 'en attente') . '</p>';
             if (!empty($status['error'])) { echo '<p>Erreur : ' . esc_html($status['error']) . '</p>'; }
+            echo '<p>Automatisation GitHub : ' . (defined('UID_GITHUB_DEPLOY_ENABLED') && UID_GITHUB_DEPLOY_ENABLED === true ? 'activée' : 'désactivée') . '</p>';
             echo '<p>Modifications en attente : ' . count(glob($dir . '/pending-*.json')) . '</p>';
         }
         echo '</div>';
@@ -217,3 +219,5 @@ add_action('admin_notices', function () {
         echo '<div class="notice notice-warning"><p>UID : vérifier ACF, le CPT evenements, les trois IDs de pages et UID_STATE_DIR avant mise en production.</p></div>';
     }
 });
+
+require_once __DIR__ . '/deployment.php';

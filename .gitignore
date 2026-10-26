@@ -37,3 +37,7 @@ astro/.vscode/
 exemple/
 
 
+
+# Python deployment test caches
+__pycache__/
+*.pyc

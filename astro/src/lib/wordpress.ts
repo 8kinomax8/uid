@@ -6,7 +6,7 @@ export type EventItem = {
 };
 export type DiscoverySession = { date: string; startsAt: string; endsAt: string; description: string; href: string; poster: Media };
 export type CalendarConfig = { embedUrl: string; externalUrl: string };
-export type CMSConfig = { base: string; lutinsId: string; aventuriersId: string; calendarId: string };
+export type CMSConfig = { base: string; lutinsId: string; aventuriersId: string; calendarId: string; development?: boolean };
 type RecordValue = Record<string, any>;
 const zone = 'Europe/Zurich';
 const object = (value: unknown): RecordValue => {
@@ -40,12 +40,13 @@ const dateLabel = (date: Date) => new Intl.DateTimeFormat('fr-CH', {timeZone:zon
 export function createWordPressClient(config: CMSConfig, fetcher: typeof fetch = fetch, now = () => new Date()) {
  const base = safeURL(config.base).replace(/\/$/, '') + '/';
  if (!new URL(base).pathname.endsWith('/wp-json/wp/v2/')) throw new Error('WORDPRESS_API_BASE doit se terminer par /wp-json/wp/v2');
+ if (config.development && base !== 'https://dev.fanfareuid.ch/wordpress/wp-json/wp/v2/') throw new Error('Seule l’API WordPress DEV vérifiée est autorisée');
  const mediaCache = new Map<number, Promise<Media>>();
  async function request(path: string) {
   let last: unknown;
   for (let attempt = 0; attempt < 3; attempt++) {
    try {
-    const response = await fetcher(new URL(path, base), {signal: AbortSignal.timeout(15000), headers: {Accept:'application/json'}, cache:'no-store'});
+    const response = await fetcher(new URL(path, base), {signal: AbortSignal.timeout(15000), headers: {Accept:'application/json'}, cache:'no-store', redirect:'error'});
     if (!response.ok) {
      if (response.status < 500 && response.status !== 429) throw Object.assign(new Error(`WordPress HTTP ${response.status}`), {permanent:true});
      throw new Error(`WordPress HTTP ${response.status}`);
@@ -65,7 +66,9 @@ export function createWordPressClient(config: CMSConfig, fetcher: typeof fetch =
   if (!mediaCache.has(key)) mediaCache.set(key, request(`media/${key}`).then(({data}) => {
    const m = object(data), detail = object(m.media_details);
    if (!(detail.width > 0 && detail.height > 0)) throw new Error('Dimensions de média invalides');
-   return {id:key, src:safeURL(m.source_url), alt:typeof m.alt_text === 'string' ? m.alt_text : '', width:detail.width, height:detail.height};
+   const src = safeURL(m.source_url);
+   if (config.development && new URL(src).origin !== 'https://dev.fanfareuid.ch') throw new Error('Média hors du WordPress DEV');
+   return {id:key, src, alt:typeof m.alt_text === 'string' ? m.alt_text : '', width:detail.width, height:detail.height};
   }));
   return mediaCache.get(key)!;
  }
@@ -122,7 +125,7 @@ export function createWordPressClient(config: CMSConfig, fetcher: typeof fetch =
 }
 let client: ReturnType<typeof createWordPressClient>;
 function configuredClient() {
- return client ??= createWordPressClient({base:import.meta.env.WORDPRESS_API_BASE ?? '',lutinsId:import.meta.env.WORDPRESS_LUTINS_PAGE_ID ?? '',aventuriersId:import.meta.env.WORDPRESS_AVENTURIERS_PAGE_ID ?? '',calendarId:import.meta.env.WORDPRESS_CALENDAR_PAGE_ID ?? ''});
+ return client ??= createWordPressClient({base:import.meta.env.WORDPRESS_API_BASE ?? '',lutinsId:import.meta.env.WORDPRESS_LUTINS_PAGE_ID ?? '',aventuriersId:import.meta.env.WORDPRESS_AVENTURIERS_PAGE_ID ?? '',calendarId:import.meta.env.WORDPRESS_CALENDAR_PAGE_ID ?? '',development:import.meta.env.DEPLOY_ENVIRONMENT === 'development'});
 }
 export const getEvents = () => configuredClient().getEvents();
 export const getDiscoverySession = (group: 'lutins'|'aventuriers') => configuredClient().getDiscoverySession(group);

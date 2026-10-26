@@ -55,3 +55,15 @@ test('calendar empty/configured/invalid',async()=>{
  assert.equal(new URL(calendar!.embedUrl).searchParams.get('ctz'),'Europe/Zurich');
  await assert.rejects(()=>createWordPressClient(config,mock(()=>reply({acf:{google_calendar_id:'<iframe>'}}))).getCalendarConfig());
 });
+
+test('DEV refuses production API, redirects and production media',async()=>{
+ assert.throws(()=>createWordPressClient({...config,development:true}),/DEV/);
+ const dev={...config,base:'https://dev.fanfareuid.ch/wordpress/wp-json/wp/v2',development:true};
+ let strictRedirect=false;
+ const fetcher = (async (input:any,init:any)=>{
+  strictRedirect=init.redirect==='error';
+  return String(input).includes('/media/') ? reply(media(1)):reply([event(1)],1);
+ }) as typeof fetch;
+ await assert.rejects(()=>createWordPressClient(dev,fetcher,()=>new Date('2026-01-01')).getEvents(),/Média hors/);
+ assert.ok(strictRedirect);
+});
