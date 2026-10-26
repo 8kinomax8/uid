@@ -33,7 +33,7 @@ class DeploymentTest(unittest.TestCase):
         # Relocate only the two pinned server paths in the disposable test copy.
         # The production script has no test flag/environment bypass for these guards.
         self.script = self.private / 'publisher.sh'
-        self.script.write_text((DEPLOY / 'uid-publish.sh').read_text().replace('/home/httpd/vhosts/fanfareuid.ch/dev.fanfareuid.ch', str(self.root)).replace('/home/httpd/vhosts/fanfareuid.ch/private/uid-dev', str(self.private)))
+        self.script.write_text((DEPLOY / 'uid-publish.sh').read_text().replace('/dev.fanfareuid.ch', str(self.root)).replace('/private/uid-dev', str(self.private)))
         self.config = self.private / 'server.env'
         self.config.write_text(f'UID_TARGET_HOST=dev.fanfareuid.ch\nUID_DOCUMENT_ROOT={self.root}\nUID_PRIVATE_DIR={self.private}\n')
 
@@ -167,6 +167,10 @@ class DeploymentTest(unittest.TestCase):
             (f'rsync --server -logDtpre.iLsfxCIvu . {private}/incoming/101-1/dist/', True),
             (f'rsync --server -l -p -D -r -t --dirs . {private}/incoming/101-1/manifest.tsv', True),
             ('sh -c id', False),
+            ('/usr/bin/bash /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/bin/uid-publish.sh /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/server.env check', False),
+            ('/usr/bin/rsync --server -l . /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/incoming/101-1/dist/', False),
+            ('/usr/bin/rsync --server -l . /dev.fanfareuid.ch/wordpress/', False),
+            (f'/usr/bin/rsync --server -l . {private}/incoming/101-1/dist/', True),
             (f'rsync --server -l . {private}/server.env', False),
             (f'rsync --server --delete . {private}/incoming/101-1/dist/', False),
             (f'rsync --server -K . {private}/incoming/101-1/dist/', False),
@@ -189,11 +193,67 @@ class DeploymentTest(unittest.TestCase):
             self.assertEqual(commands[0][commands[0].index('-p')+1],'2121')
             for command in commands[1:]:
                 self.assertNotIn('--delete',command)
+                self.assertIn('--rsync-path=/usr/bin/rsync',command)
+                self.assertNotIn('/home/httpd/', ' '.join(command))
                 self.assertIn(actions.PRIVATE+'/incoming/101-1/',command[-1])
                 self.assertNotIn('/dev.fanfareuid.ch/',command[-1])
             run.reset_mock()
             with self.assertRaises(ValueError): actions.remote('rollback')
             run.assert_not_called()
+
+    def test_configuration_path_is_pinned_before_sourcing(self):
+        unexpected=self.private/'unexpected.env'
+        marker=self.base/'config-was-executed'
+        unexpected.write_text(f'touch {marker}\n')
+        result=subprocess.run(['bash',str(self.script),str(unexpected),'check'],capture_output=True)
+        self.assertNotEqual(result.returncode,0)
+        self.assertFalse(marker.exists())
+        real_config=self.private/'real-config.env'
+        self.config.rename(real_config)
+        self.config.symlink_to(real_config)
+        self.call('check',success=False)
+
+    def test_canonical_dev_root_cannot_redirect_to_production(self):
+        self.root.rename(self.base/'original-dev')
+        self.root.symlink_to(self.production,target_is_directory=True)
+        self.call('check',success=False)
+        self.assertEqual((self.production/'index.html').read_text(),'PRODUCTION')
+
+    def test_runner_rejects_non_chroot_private_path_before_ssh(self):
+        env={'DEV_SSH_HOST':actions.SSH_HOST,'DEV_SSH_PORT':actions.SSH_PORT,'DEV_SSH_USER':actions.SSH_USER,'DEV_REMOTE_PRIVATE_DIR':'/home/httpd/vhosts/fanfareuid.ch/private/uid-dev'}
+        with patch.dict(os.environ,env,clear=True), patch.object(actions.subprocess,'run') as run:
+            with self.assertRaises(ValueError): actions.remote('check')
+            run.assert_not_called()
+
+    @unittest.skipUnless(shutil.which('rsync'), 'rsync is required for the local protocol test')
+    def test_real_rsync_protocol_passes_guard_into_private_staging(self):
+        # Real rsync sender/receiver, connected through a local stand-in for SSH.
+        # No SSH daemon, network connection, real chroot or server is involved.
+        release='301-1'
+        self.call('prepare',release)
+        source=self.base/'artifact'
+        (source/'agenda').mkdir(parents=True)
+        (source/'images').mkdir()
+        (source/'index.html').write_text('LOCAL TEST')
+        (source/'agenda/index.html').write_text('agenda')
+        (source/'images/bannière cadets.jpg').write_bytes(b'image')
+        manifest=self.base/'manifest.tsv'
+        actions.manifest(source,manifest)
+        gate=self.private/'real-gate.sh'
+        gate.write_text((DEPLOY/'uid-ssh-gate.sh').read_text().replace('/private/uid-dev',str(self.private)))
+        transport=self.base/'local-ssh'
+        import sys
+        transport.write_text(f'#!{sys.executable}\nimport os,shlex,sys\ni=sys.argv.index("--server")\nos.environ["SSH_ORIGINAL_COMMAND"]=shlex.join(sys.argv[i-1:])\nos.execv({shutil.which("bash")!r},["bash",{str(gate)!r}])\n')
+        transport.chmod(0o700)
+        with patch.object(actions,'PRIVATE',str(self.private)), patch.object(actions,'remote'), patch.object(actions,'ssh_settings',return_value=[str(transport)]):
+            actions.upload(source,manifest,release)
+        incoming=self.private/'incoming'/release
+        self.assertEqual((incoming/'manifest.tsv').read_bytes(),manifest.read_bytes())
+        self.assertEqual((incoming/'dist/index.html').read_text(),'LOCAL TEST')
+        self.assertEqual((incoming/'dist/images/bannière cadets.jpg').read_bytes(),b'image')
+        self.assertFalse((self.root/'index.html').exists())
+        self.assertEqual((self.root/'wordpress/wp-config.php').read_text(),'WORDPRESS')
+        self.assertEqual((self.production/'index.html').read_text(),'PRODUCTION')
 
     def test_hmac_binds_timestamp_nonce_and_payload(self):
         secret='ab'*32

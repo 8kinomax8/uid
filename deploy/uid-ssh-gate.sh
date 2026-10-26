@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Forced command for the GitHub DEV deploy key. Never eval SSH_ORIGINAL_COMMAND.
 set -euo pipefail
-private=/home/httpd/vhosts/fanfareuid.ch/private/uid-dev
+private=/private/uid-dev
 command=${SSH_ORIGINAL_COMMAND:-}
 [[ -n "$command" && "$command" != *[[:cntrl:]]* && "$command" != *\'* && "$command" != *\"* && "$command" != *\\* ]] || exit 126
 IFS=' ' read -r -a words <<< "$command"
@@ -20,7 +20,7 @@ fi
 if [[ "$count" -ge 5 && ( ${words[0]} == rsync || ${words[0]} == /usr/bin/rsync ) && ${words[1]} == --server ]]; then
  last=$((count-1)); dot=$((count-2))
  [[ ${words[$dot]} == . ]] || exit 126
- [[ ${words[$last]} =~ ^/home/httpd/vhosts/fanfareuid.ch/private/uid-dev/incoming/[0-9]+-[0-9]+/(dist/|manifest.tsv)$ ]] || exit 126
+ [[ ${words[$last]} =~ ^/private/uid-dev/incoming/[0-9]+-[0-9]+/(dist/|manifest.tsv)$ ]] || exit 126
  for ((i=2; i<dot; i++)); do
   flag=${words[$i]}
   [[ "$flag" =~ ^-[logDdptvrzei]+(\.[a-zA-Z.]+)?$ || "$flag" == --log-format=X || "$flag" == --dirs || "$flag" == --msgs2stderr || "$flag" == --chmod=Du=rwx,Dgo=,Fu=rw,Fgo= ]] || exit 126

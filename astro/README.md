@@ -22,4 +22,6 @@ ASTRO_TELEMETRY_DISABLED=1 npm run build
 
 Les tests Python de publication s’exécutent dans des répertoires temporaires, sans SSH réel. Les tests de build utilisent une API simulée locale et des sorties temporaires, sans WordPress réel.
 
+Les commandes SSH/rsync utilisent `/dev.fanfareuid.ch` et `/private/uid-dev` dans le chroot ; WordPress/PHP conserve ses chemins complets Plesk.
+
 Le [guide WordPress / GitHub Actions / Plesk](../docs/wordpress-plesk.md) décrit les clés SSH, les secrets, l’installation de l’extension et le rollback. Le workflow `.github/workflows/uid-dev.yml` reste bloqué pour les événements automatiques tant que `UID_DEV_AUTO_DEPLOY` n’est pas activée. Le premier déploiement doit être lancé manuellement après une exécution `validate` réussie.

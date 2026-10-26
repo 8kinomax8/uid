@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
-# Run on Plesk: Bash + POSIX utilities only. No Node, npm or Git.
+# Run inside the SSH chroot: Bash + POSIX utilities only. No Node, npm or Git.
 set -euo pipefail
 umask 077
 fail() { printf '%s\n' "$*" >&2; exit 1; }
 config=${1:?Usage: uid-publish.sh CONFIG check|publish|rollback|recover [RELEASE COMMIT FIRST]}
 mode=${2:?Missing operation}
+[[ "$config" == /private/uid-dev/server.env ]] || fail 'Only the private SSH-chroot configuration is permitted'
 [[ -f "$config" && ! -L "$config" ]] || fail 'Missing regular server configuration'
+# Validate the physical parent before sourcing operator-owned configuration.
+[[ $(cd -- "$(dirname -- "$config")" && pwd -P) == /private/uid-dev ]] || fail 'Configuration directory resolves outside private DEV'
 # This is an operator-installed private file, never an uploaded build artifact.
 source "$config"
 [[ ${UID_TARGET_HOST:-} == dev.fanfareuid.ch ]] || fail 'Only dev.fanfareuid.ch is permitted'
 canonical() { [[ "$1" == /* && -d "$1" ]] || fail 'Existing absolute directory required'; (cd -- "$1" && pwd -P); }
+[[ ${UID_DOCUMENT_ROOT:-} == /dev.fanfareuid.ch ]] || fail 'Only the verified DEV document root is permitted'
+[[ ${UID_PRIVATE_DIR:-} == /private/uid-dev ]] || fail 'Only the verified private DEV directory is permitted'
 root=$(canonical "${UID_DOCUMENT_ROOT:?}")
-[[ ${UID_DOCUMENT_ROOT:-} == /home/httpd/vhosts/fanfareuid.ch/dev.fanfareuid.ch ]] || fail 'Only the verified DEV document root is permitted'
-[[ ${UID_PRIVATE_DIR:-} == /home/httpd/vhosts/fanfareuid.ch/private/uid-dev ]] || fail 'Only the verified private DEV directory is permitted'
 [[ "$root" == "$UID_DOCUMENT_ROOT" ]] || fail 'DEV root resolves to another location'
 private=$(canonical "${UID_PRIVATE_DIR:?}")
 [[ "$root" != / && "$private" != / ]] || fail 'Filesystem root forbidden'

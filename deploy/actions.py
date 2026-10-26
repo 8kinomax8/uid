@@ -17,7 +17,8 @@ import uuid
 
 DEV_ORIGIN = 'https://dev.fanfareuid.ch'
 DEV_API = DEV_ORIGIN + '/wordpress/wp-json/wp/v2'
-PRIVATE = '/home/httpd/vhosts/fanfareuid.ch/private/uid-dev'
+# All remote paths are resolved inside SSH's chroot, never in PHP's host namespace.
+PRIVATE = '/private/uid-dev'
 SSH_HOST = 'ananke.kreativmedia.ch'
 SSH_USER = 'fanfareuid'
 SSH_PORT = '2121'
@@ -140,7 +141,7 @@ def upload(dist, manifest_file, release):
     remote('prepare', release)
     # Never rsync to the document root, and never pass --delete (not even for staging).
     transport = shlex.join(ssh_settings())
-    common = ['rsync', '--archive', '--no-owner', '--no-group', '--chmod=Du=rwx,Dgo=,Fu=rw,Fgo=', '-e', transport]
+    common = ['rsync', '--rsync-path=/usr/bin/rsync', '--archive', '--no-owner', '--no-group', '--chmod=Du=rwx,Dgo=,Fu=rw,Fgo=', '-e', transport]
     destination = f'{SSH_USER}@{SSH_HOST}:{PRIVATE}/incoming/{release}'
     subprocess.run(common + [str(Path(dist).resolve()) + '/', destination + '/dist/'], check=True)
     subprocess.run(common + [str(Path(manifest_file).resolve()), destination + '/manifest.tsv'], check=True)

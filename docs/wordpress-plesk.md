@@ -13,24 +13,34 @@ Le build Astro est effectué sur GitHub Actions avec **Node.js 24**. Plesk reço
 | WordPress | `https://dev.fanfareuid.ch/wordpress/` |
 | API du build | `https://dev.fanfareuid.ch/wordpress/wp-json/wp/v2` |
 | SSH | `fanfareuid@ananke.kreativmedia.ch`, port **2121** |
-| Racine DEV | `/home/httpd/vhosts/fanfareuid.ch/dev.fanfareuid.ch` |
-| Répertoire privé DEV | `/home/httpd/vhosts/fanfareuid.ch/private/uid-dev` |
+| Racine DEV vue par SSH | `/dev.fanfareuid.ch` |
+| Répertoire privé vu par SSH | `/private/uid-dev` |
+| Racine DEV vue par PHP/Plesk | `/home/httpd/vhosts/fanfareuid.ch/dev.fanfareuid.ch` |
+| Répertoire privé vu par PHP/Plesk | `/home/httpd/vhosts/fanfareuid.ch/private/uid-dev` |
 | Bash / rsync | `/usr/bin/bash` / `/usr/bin/rsync` |
 | Shell de connexion | `/bin/sh` ; le workflow appelle Bash explicitement |
 
 Les trois **IDs de pages WordPress DEV** restent à renseigner : Lutins, Aventuriers, Agenda. Ne pas recopier les IDs de production sans les vérifier dans DEV.
 
+La session SSH est **chrootée** : `/dev.fanfareuid.ch` dans SSH correspond à `/home/httpd/vhosts/fanfareuid.ch/dev.fanfareuid.ch` pour PHP/Plesk. De même, `/private/uid-dev/cms-state` dans SSH correspond au répertoire PHP `/home/httpd/vhosts/fanfareuid.ch/private/uid-dev/cms-state`. Ce sont les mêmes fichiers, pas deux copies à synchroniser.
+
+Tous les chemins des commandes SSH, de rsync, du garde et de `server.env` utilisent la vue chrootée. Les constantes PHP `UID_DOCUMENT_ROOT` et `UID_STATE_DIR` conservent les chemins complets ci-dessous. Ne pas convertir ces constantes PHP en chemins SSH.
+
 Les chemins sont contrôlés dans les scripts. Changer seulement un secret ou un paramètre ne permet pas de déployer ailleurs. La racine et le répertoire privé doivent correspondre à leurs chemins physiques, sans résolution vers une autre destination par lien symbolique.
+
+### Mettre à jour une installation préparée avant la découverte du chroot
+
+Remplacer, via la connexion administrative existante, les copies de `uid-publish.sh`, `uid-ssh-gate.sh` et `server.env` sous `/private/uid-dev/`. Mettre aussi à jour la ligne `command=` de la clé GitHub dans `authorized_keys` avec le chemin chrooté donné ci-dessous et committer la correction du workflow. Garder la configuration PHP complète et les dossiers de données existants. Le contrôle `check` est disponible pour une vérification ultérieure sans publication ; aucun déploiement n’est requis pour appliquer ces corrections.
 
 ## 2. Préparer le serveur une fois, sans publier Astro
 
 Effectuer ces étapes avec la connexion administrative existante, pas avec la future clé GitHub restreinte. Sauvegarder d’abord WordPress DEV, ses fichiers et sa base. Ne modifier aucun réglage du domaine de production.
 
 1. Supprimer/désactiver les **anciens déclencheurs de build Node Plesk** : action Git `uid-deploy.mjs`, tâche `worker` Node et ancien webhook GitHub → Plesk. Les nouveaux scripts ne les utilisent plus. Ne pas supprimer WordPress ni les sauvegardes existantes.
-2. Créer les répertoires privés ci-dessous avec accès limité à l’utilisateur `fanfareuid` et au PHP de WordPress DEV. PHP et SSH doivent pouvoir partager `cms-state` ; vérifier les utilisateurs réellement utilisés avant de régler les permissions. Ne pas utiliser 777.
+2. Les dossiers `bin`, `incoming`, `releases`, `state` et `cms-state` existent déjà. Vérifier leur présence et leur accès limité à l’utilisateur `fanfareuid` et au PHP de WordPress DEV. PHP et SSH doivent pouvoir partager `cms-state` ; vérifier les utilisateurs réellement utilisés avant de régler les permissions. Ne pas utiliser 777.
 
 ```text
-/home/httpd/vhosts/fanfareuid.ch/private/uid-dev/
+/private/uid-dev/
 ├── bin/                  # scripts installés manuellement
 ├── incoming/             # staging rsync, jamais une racine web
 ├── releases/             # trois versions statiques publiées
@@ -46,8 +56,8 @@ Si l’ancienne configuration WordPress possède déjà des fichiers `pending-*.
 5. Vérifier la configuration en lecture seule :
 
 ```sh
-/usr/bin/bash /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/bin/uid-publish.sh \
-  /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/server.env check
+/usr/bin/bash /private/uid-dev/bin/uid-publish.sh \
+  /private/uid-dev/server.env check
 ```
 
 Ce contrôle ne publie rien et ne marque pas le site comme initialisé. Vérifier aussi la présence de `sha256sum` ou `shasum`, et des utilitaires usuels `awk`, `find`, `sort`, `cp`, `mv`, `mktemp`. Les scripts n’utilisent pas PHP CLI sur Plesk.
@@ -59,7 +69,7 @@ Générer localement une nouvelle clé Ed25519 dédiée au DEV, sans réutiliser
 Ajouter **uniquement sa clé publique** dans `~fanfareuid/.ssh/authorized_keys`, précédée de cette restriction (une seule ligne) :
 
 ```text
-command="/usr/bin/bash /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/bin/uid-ssh-gate.sh",no-agent-forwarding,no-port-forwarding,no-X11-forwarding,no-pty ssh-ed25519 CLE_PUBLIQUE uid-github-dev
+command="/usr/bin/bash /private/uid-dev/bin/uid-ssh-gate.sh",no-agent-forwarding,no-port-forwarding,no-X11-forwarding,no-pty ssh-ed25519 CLE_PUBLIQUE uid-github-dev
 ```
 
 Le garde autorise seulement le script DEV et le récepteur rsync dans `incoming/`. Il refuse le shell général, les transferts vers la racine web, les options de suppression et le suivi des répertoires symboliques. Ne pas placer cette restriction sur la clé administrative existante.
@@ -70,7 +80,7 @@ Obtenir l’empreinte de la clé hôte SSH via une source de confiance (héberge
 
 Conserver CPT UI, ACF gratuit, le CPT `evenements` et les deux fiches de sessions. L’API DEV et les champs ACF sont déjà opérationnels d’après les vérifications du propriétaire. Mettre à jour le dossier `wordpress/uid-headless/` **sur DEV uniquement**, en incluant le nouveau fichier `deployment.php`.
 
-Configurer `wp-config.php` **DEV uniquement**, avant la ligne de fin :
+Configurer `wp-config.php` **DEV uniquement**, avant la ligne de fin. Ces chemins complets sont ceux du processus PHP hors chroot SSH et restent inchangés :
 
 ```php
 define('UID_DOCUMENT_ROOT', '/home/httpd/vhosts/fanfareuid.ch/dev.fanfareuid.ch');
@@ -156,7 +166,7 @@ Les reconstructions planifiées Actions tournent à 23:15 et 00:15 UTC pour reti
 
 ## 6. Garanties de publication et restauration
 
-Rsync envoie uniquement vers `private/uid-dev/incoming/RUN-ATTEMPT/`, **sans `--delete`**. Il n’est jamais lancé sur la racine publique. Un manifeste SHA-256 liste les fichiers autorisés ; le serveur refuse les chemins dangereux, `/wordpress/`, les fichiers PHP, sources, secrets, liens symboliques et fichiers supplémentaires.
+Rsync utilise explicitement le binaire distant `/usr/bin/rsync` et envoie uniquement vers `private/uid-dev/incoming/RUN-ATTEMPT/`, **sans `--delete`**. Il n’est jamais lancé sur la racine publique. Un manifeste SHA-256 liste les fichiers autorisés ; le serveur refuse les chemins dangereux, `/wordpress/`, les fichiers PHP, sources, secrets, liens symboliques et fichiers supplémentaires.
 
 Le moteur vérifie tous les fichiers existants avant de modifier la racine. Un fichier non géré n’est ni écrasé ni supprimé. Un fichier géré modifié hors déploiement provoque un arrêt pour inspection. Les assets sont publiés avant le HTML. Les suppressions ne concernent que les fichiers de l’ancien manifeste absents du nouveau ; les anciens assets Astro des versions récentes sont conservés pour les pages déjà ouvertes.
 
@@ -173,8 +183,8 @@ Pour conserver durablement une version restaurée pendant un incident, désactiv
 Si `publish.lock` subsiste, consulter son fichier `pid` et vérifier qu’aucune publication n’est encore active avant de retirer ce seul verrou avec la connexion administrative. **Ne pas effacer `transaction/`.** Exécuter ensuite, avec la connexion administrative :
 
 ```sh
-/usr/bin/bash /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/bin/uid-publish.sh \
-  /home/httpd/vhosts/fanfareuid.ch/private/uid-dev/server.env recover
+/usr/bin/bash /private/uid-dev/bin/uid-publish.sh \
+  /private/uid-dev/server.env recover
 ```
 
 La récupération restaure le journal précédent sans nouvelle publication. Si elle échoue, conserver le verrou et le journal pour inspection. La publication n’est pas un échange atomique de toute la racine ; une requête peut traverser brièvement deux générations de HTML. Les copies de fichiers sont atomiques et les assets précédents sont conservés.

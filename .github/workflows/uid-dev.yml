@@ -54,7 +54,8 @@ jobs:
       DEV_SSH_HOST: ananke.kreativmedia.ch
       DEV_SSH_PORT: '2121'
       DEV_SSH_USER: fanfareuid
-      DEV_REMOTE_PRIVATE_DIR: /home/httpd/vhosts/fanfareuid.ch/private/uid-dev
+      # Path as seen by the chrooted SSH account, not by PHP/Plesk.
+      DEV_REMOTE_PRIVATE_DIR: /private/uid-dev
     steps:
       - uses: actions/checkout@v4
         with:
