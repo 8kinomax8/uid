@@ -8,7 +8,7 @@ import { navigation, site } from "../data/site";
 		<a href="/mentions-legales/">Mentions légales</a>
 	</nav>
 	<address>
-		<span>{site.address}</span>
+		<span>{site.address.split(", ").map((line, index) => <>{index > 0 && <br />}{line}</>)}</span>
 		<a href={`mailto:${site.email}`}>{site.email}</a>
 	</address>
 	<p class="footer-wordmark">{site.name}</p>

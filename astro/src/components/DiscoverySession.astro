@@ -1,0 +1,15 @@
+---
+import ContentFlow from './ContentFlow.astro';
+import { getDiscoverySession } from '../lib/wordpress';
+type Props = { group: 'lutins' | 'aventuriers' };
+const { group } = Astro.props;
+const session = await getDiscoverySession(group);
+const block = session ? {
+ title: 'Session découverte',
+ kicker: group === 'lutins' ? 'Avant-goût' : 'Essayer avant de commencer',
+ body: [session.date, 'Au local UID, Rue du Temple 31 à Delémont.', ...(session.description ? [session.description] : [])],
+ points: [group === 'lutins' ? 'Pour les enfants de 3 à 6 ans' : 'Pour les enfants de 7 à 10 ans'],
+ cta: {label:'Inscription à la session', href:session.href, external:true},
+} : null;
+---
+{session && block && <ContentFlow block={block} image={session.poster.src} imageAlt={session.poster.alt} className="content-flow--poster" pointsInText reverse />}

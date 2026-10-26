@@ -1,0 +1,42 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import ContentFlow from "../components/ContentFlow.astro";
+const contact = (subject: string) => `mailto:president@fanfareuid.ch?subject=${encodeURIComponent(subject)}`;
+---
+
+<BaseLayout title="Soutien" description="Soutenir l’Union Instrumentale Delémont : La Partition, nos concerts annuels et nos nouveaux costumes pour 2028.">
+	<PageHero title="Soutenir l’UID" text="Rejoindre La Partition, sponsoriser un concert ou contribuer aux nouveaux costumes de 2028 : plusieurs façons de prendre part à la vie de notre harmonie." />
+	<ContentFlow image={null} block={{
+		title: "La Partition",
+		body: ["La Partition est le groupe de soutien de l’Union Instrumentale Delémont. Il rassemble celles et ceux qui souhaitent accompagner notre société et soutenir ses activités musicales.", "Vous aimeriez en faire partie ? Contactez-nous pour découvrir le groupe et les possibilités de soutien."],
+		cta: { label: "Rejoindre La Partition", href: contact("Rejoindre La Partition") }
+	}} />
+	<section class="support-projects" aria-labelledby="support-projects-title">
+		<div class="section-heading" data-reveal>
+			<h2 id="support-projects-title">Soutenir nos projets</h2>
+			<p>Deux projets auxquels vous pouvez associer votre soutien ou votre entreprise.</p>
+		</div>
+		<div class="support-projects__grid">
+			<article data-reveal>
+				<h3>Nos concerts annuels</h3>
+				<p>Nos concerts annuels sont des rendez-vous pour partager notre musique avec le public. Vous pouvez contribuer à leur réalisation en devenant sponsor.</p>
+				<p>Échangeons sur les possibilités de partenariat pour un prochain concert.</p>
+				<a class="text-link" href={contact("Sponsoring des concerts annuels")}>Sponsoriser un concert →</a>
+			</article>
+			<article data-reveal>
+				<h3>De nouveaux costumes en 2028</h3>
+				<p>L’UID prépare de nouveaux costumes pour 2028. Vous pouvez soutenir ce projet en participant à leur financement.</p>
+				<p>Contactez-nous pour discuter d’une contribution ou d’un sponsoring.</p>
+				<a class="text-link" href={contact("Soutien aux nouveaux costumes 2028")}>Soutenir les costumes →</a>
+			</article>
+		</div>
+	</section>
+	<section class="contact-panel" aria-labelledby="support-contact-title">
+		<div data-reveal>
+			<h2 id="support-contact-title">Parlons de votre soutien</h2>
+			<p>Guillaume Harris, président de l’Union Instrumentale Delémont, vous répond pour La Partition et les projets de sponsoring.</p>
+		</div>
+		<div class="contact-links" data-reveal><a href="mailto:president@fanfareuid.ch">president@fanfareuid.ch</a></div>
+	</section>
+</BaseLayout>

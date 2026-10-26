@@ -3,16 +3,16 @@ type Props = {
 	title: string;
 	kicker?: string;
 	text?: string;
-	image?: string;
+	image?: string | null;
 };
 
 const { title, kicker, text, image = "/images/Photo_ensemble.jpg" } = Astro.props;
 ---
 
-<section class="page-hero">
-	<div class="page-hero__media">
+<section class:list={["page-hero", { "page-hero--text-only": !image }]}>
+	{image && <div class="page-hero__media">
 		<img src={image} alt="" width="1800" height="1012" decoding="async" />
-	</div>
+	</div>}
 	<div class="page-hero__content" data-reveal>
 		<h1>{title}</h1>
 		{kicker && <p class="page-context">{kicker}</p>}

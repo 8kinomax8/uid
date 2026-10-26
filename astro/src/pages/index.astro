@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import PhotoLightbox from "../components/PhotoLightbox.astro";
 import EventCard from "../components/EventCard.astro";
 import { site } from "../data/site";
 import { getEvents } from "../lib/wordpress";
@@ -7,26 +8,39 @@ import { getEvents } from "../lib/wordpress";
 const events = await getEvents();
 ---
 
-<BaseLayout title="Union Instrumentale de Delémont" description={site.description}>
+<BaseLayout title="Union Instrumentale Delémont" description={site.description}>
 	<section class="home-hero" aria-labelledby="home-title">
 		<h1 id="home-title">Union Instrumentale<br />Delémont</h1>
 		<div class="home-hero__content">
 			<p>
-				Depuis 1878, l'Union Instrumentale de Delémont rassemble bois, cuivres et percussion dans une harmonie
+				Depuis 1878, l'Union Instrumentale Delémont rassemble bois, cuivres et percussion dans une harmonie
 				intergénérationnelle. La société cultive le plaisir de jouer ensemble, les concerts qui réunissent la
 				ville et la transmission aux jeunes musiciennes et musiciens.
 			</p>
 			<div class="hero-actions">
 				<a class="button-link button-link--bright" href="#news">Voir les événements</a>
-				<a class="ghost-link" href="/harmonie/">Découvrir l'histoire</a>
+				<a class="ghost-link" href="/harmonie/"><span class="link-label">Découvrir l'histoire</span></a>
 			</div>
 		</div>
 		<figure class="home-hero__media">
-			<img src="/images/Photo_ensemble.jpg" alt="L’Union Instrumentale de Delémont réunie avec ses instruments et ses bannières" width="1800" height="1200" fetchpriority="high" />
+			<img src="/images/Photo_ensemble.jpg" alt="L’Union Instrumentale Delémont réunie avec ses instruments et ses bannières" width="1800" height="1200" fetchpriority="high" />
 			<figcaption>Bois, cuivres et percussion. Ensemble depuis 1878.</figcaption>
 		</figure>
 	</section>
 
+	<section class="events-section" id="news" aria-labelledby="news-title">
+		<div class="section-heading" data-reveal>
+			<h2 id="news-title">Les prochains rendez-vous</h2>
+			<p>
+				Concerts, répétitions ouvertes et rendez-vous de formation: les nouvelles de l'Instrum se vivent
+				d'abord dans la salle, puis se retrouvent ici.
+			</p>
+		</div>
+		<div class="events-grid">
+			{events.map((event, index) => <EventCard event={event} index={index} />)}
+			{events.length === 0 && <p>Aucun événement n’est programmé pour le moment.</p>}
+		</div>
+	</section>
 	<section class="formation-section" aria-labelledby="formation-title">
 		<div class="section-heading section-heading--compact" data-reveal>
 			<h2 id="formation-title">Grandir en musique</h2>
@@ -51,16 +65,5 @@ const events = await getEvents();
 		</div>
 	</section>
 
-	<section class="events-section" id="news" aria-labelledby="news-title">
-		<div class="section-heading" data-reveal>
-			<h2 id="news-title">Les prochains rendez-vous</h2>
-			<p>
-				Concerts, répétitions ouvertes et rendez-vous de formation: les nouvelles de l'Instrum se vivent
-				d'abord dans la salle, puis se retrouvent ici.
-			</p>
-		</div>
-		<div class="events-grid">
-			{events.map((event, index) => <EventCard event={event} index={index} />)}
-		</div>
-	</section>
+{events.length > 0 && <PhotoLightbox initialImage={events[0].image} />}
 </BaseLayout>

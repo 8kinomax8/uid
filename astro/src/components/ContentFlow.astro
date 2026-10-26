@@ -6,11 +6,12 @@ type Props = {
 	block: ContentBlock;
 	reverse?: boolean;
 	image?: string | null;
+	imageAlt?: string;
 	className?: string;
 	pointsInText?: boolean;
 };
 
-const { block, reverse = false, image = "/images/Photo_ensemble.jpg", className, pointsInText = false } = Astro.props;
+const { block, imageAlt = "", reverse = false, image = "/images/Photo_ensemble.jpg", className, pointsInText = false } = Astro.props;
 const hasAside = Boolean(image || (!pointsInText && block.points?.length) || Astro.slots.has("aside-after"));
 const ctaIsExternal = block.cta?.external ?? /^https?:\/\//.test(block.cta?.href ?? "");
 ---
@@ -32,7 +33,7 @@ const ctaIsExternal = block.cta?.external ?? /^https?:\/\//.test(block.cta?.href
 		<slot name="text-after" />
 	</div>
 	{hasAside && <div class="content-flow__aside" data-reveal>
-		{image && <img src={image} alt="" width="900" height="760" loading="lazy" decoding="async" />}
+		{image && <img src={image} alt={imageAlt} width="900" height="760" loading="lazy" decoding="async" />}
 		<slot name="aside-after" />
 		{!pointsInText && block.points && <FactList points={block.points} />}
 	</div>}

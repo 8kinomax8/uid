@@ -1,4 +1,5 @@
 ---
+import DiscoverySession from "../../components/DiscoverySession.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import ContentFlow from "../../components/ContentFlow.astro";
 import PageHero from "../../components/PageHero.astro";
@@ -13,11 +14,10 @@ import { pages } from "../../data/site";
 		image="/images/cadets.jpg"
 	/>
 	<ContentFlow block={pages.aventuriers} image="/images/aventuriers-logo.png" className="content-flow--compact-media" />
-	<ContentFlow block={pages.aventuriersDiscovery} image="/images/aventuriers-decouverte-2026.jpeg" className="content-flow--poster" pointsInText reverse>
-	<aside slot="text-after" class="youth-contact" aria-label="Contact formation">
+	<DiscoverySession group="aventuriers" />
+	<aside class="youth-contact" aria-label="Contact formation">
 		<p>Responsable formation: Florence Harris</p>
 		<a href="tel:+41765124212">076 512 42 12</a>
 		<a href="mailto:cadets@fanfareuid.ch">cadets@fanfareuid.ch</a>
 	</aside>
-	</ContentFlow>
 </BaseLayout>

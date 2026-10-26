@@ -1,0 +1,205 @@
+[
+  {
+    "key": "group_uid_events",
+    "title": "Événement",
+    "fields": [
+      {
+        "key": "field_uid_description",
+        "name": "description",
+        "label": "Description",
+        "type": "textarea",
+        "required": 1,
+        "new_lines": ""
+      },
+      {
+        "key": "field_uid_date_heure",
+        "name": "date_heure",
+        "label": "Date et heure (Suisse)",
+        "type": "date_time_picker",
+        "required": 1,
+        "display_format": "d/m/Y H:i",
+        "return_format": "Y-m-d H:i:s",
+        "first_day": 1
+      },
+      {
+        "key": "field_uid_lieu",
+        "name": "lieu",
+        "label": "Lieu",
+        "type": "text",
+        "required": 1
+      },
+      {
+        "key": "field_uid_lien_externe",
+        "name": "lien_externe",
+        "label": "Lien externe",
+        "type": "url",
+        "required": 0
+      }
+    ],
+    "location": [
+      [
+        {
+          "param": "post_type",
+          "operator": "==",
+          "value": "evenements"
+        }
+      ]
+    ],
+    "active": true,
+    "show_in_rest": 1
+  },
+  {
+    "key": "group_uid_sessions",
+    "title": "Session découverte",
+    "fields": [
+      {
+        "key": "field_uid_session_active",
+        "name": "session_active",
+        "label": "Afficher la session",
+        "type": "true_false",
+        "required": 0,
+        "ui": 1,
+        "default_value": 0
+      },
+      {
+        "key": "field_uid_session_affiche",
+        "name": "session_affiche",
+        "label": "Affiche",
+        "type": "image",
+        "required": 1,
+        "return_format": "id",
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_session_active",
+              "operator": "==",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      {
+        "key": "field_uid_session_date",
+        "name": "session_date",
+        "label": "Date",
+        "type": "date_picker",
+        "required": 1,
+        "display_format": "d/m/Y",
+        "return_format": "Y-m-d",
+        "first_day": 1,
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_session_active",
+              "operator": "==",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      {
+        "key": "field_uid_session_heure_debut",
+        "name": "session_heure_debut",
+        "label": "Heure de début",
+        "type": "time_picker",
+        "required": 1,
+        "display_format": "H:i",
+        "return_format": "H:i:s",
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_session_active",
+              "operator": "==",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      {
+        "key": "field_uid_session_heure_fin",
+        "name": "session_heure_fin",
+        "label": "Heure de fin",
+        "type": "time_picker",
+        "required": 1,
+        "display_format": "H:i",
+        "return_format": "H:i:s",
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_session_active",
+              "operator": "==",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      {
+        "key": "field_uid_session_inscription_url",
+        "name": "session_inscription_url",
+        "label": "Lien d’inscription",
+        "type": "url",
+        "required": 1,
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_session_active",
+              "operator": "==",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      {
+        "key": "field_uid_session_description",
+        "name": "session_description",
+        "label": "Description complémentaire",
+        "type": "textarea",
+        "required": 0,
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_session_active",
+              "operator": "==",
+              "value": "1"
+            }
+          ]
+        ]
+      }
+    ],
+    "location": [
+      [
+        {
+          "param": "post",
+          "operator": "==",
+          "value": "0"
+        }
+      ]
+    ],
+    "active": true,
+    "show_in_rest": 1
+  },
+  {
+    "key": "group_uid_calendar",
+    "title": "Agenda Google",
+    "fields": [
+      {
+        "key": "field_uid_google_calendar_id",
+        "name": "google_calendar_id",
+        "label": "Identifiant du calendrier public Google",
+        "type": "text",
+        "required": 0
+      }
+    ],
+    "location": [
+      [
+        {
+          "param": "post",
+          "operator": "==",
+          "value": "0"
+        }
+      ]
+    ],
+    "active": true,
+    "show_in_rest": 1
+  }
+]

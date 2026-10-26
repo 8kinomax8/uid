@@ -1,24 +1,23 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import EventCard from "../components/EventCard.astro";
-import PageHero from "../components/PageHero.astro";
-import { getAgendaItems } from "../lib/wordpress";
-
-const agenda = await getAgendaItems();
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { getCalendarConfig } from '../lib/wordpress';
+const calendar = await getCalendarConfig();
 ---
-
-<BaseLayout title="Agenda" description="Agenda des concerts, répétitions ouvertes et événements de l'Union Instrumentale de Delémont.">
-	<PageHero title="Agenda" kicker="Événements" text="Venez écouter notre musique ou participer à nos événements" />
-	<section class="events-section events-section--agenda" aria-labelledby="agenda-title">
-		<div class="section-heading" data-reveal>
-			<h2 id="agenda-title">Les prochains rendez-vous.</h2>
-			<p>
-				Les dates publiées par l'UID se rassemblent ici pour préparer une sortie, une visite ou une première
-				rencontre avec la société.
-			</p>
-		</div>
-		<div class="agenda-list">
-			{agenda.map((event, index) => <EventCard event={event} index={index} />)}
-		</div>
-	</section>
+<BaseLayout title="Agenda" description="Agenda des concerts, répétitions ouvertes et événements de l'Union Instrumentale Delémont.">
+ <PageHero title="Agenda" kicker="Événements" text="Venez écouter notre musique ou participer à nos événements" />
+ <section class="events-section events-section--agenda" aria-labelledby="agenda-title">
+  <div class="section-heading" data-reveal>
+   <h2 id="agenda-title">Les prochains rendez-vous.</h2>
+   <p>Les dates publiées par l'UID se rassemblent ici pour préparer une sortie, une visite ou une première rencontre avec la société.</p>
+  </div>
+  {calendar ? <>
+   <p><a class="text-link" href={calendar.externalUrl} target="_blank" rel="noreferrer">Ouvrir l’agenda dans Google Calendar ↗</a></p>
+   <iframe class="google-calendar" src={calendar.embedUrl} title="Agenda public de l’Union Instrumentale Delémont" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </> : <p>L’agenda sera disponible prochainement.</p>}
+ </section>
 </BaseLayout>
+<style>
+ .google-calendar { display:block; width:100%; min-width:0; height:700px; border:0; margin-top:1.5rem; background:white; }
+ @media (max-width:600px) { .google-calendar { height:600px; } }
+</style>

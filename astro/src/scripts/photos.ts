@@ -6,6 +6,8 @@ export const initPhotoLightbox = () => {
 	const openButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-photo-open]"));
 	if (!lightbox || !image || openButtons.length === 0) return;
 
+	let activePhotos: {src: string; alt: string}[] = [];
+	const navigation = Array.from(lightbox.querySelectorAll<HTMLButtonElement>("[data-photo-prev], [data-photo-next]"));
 	const syncLightboxControls = () => {
 		if (!lightbox.open || image.naturalWidth === 0 || image.naturalHeight === 0) return;
 
@@ -25,13 +27,13 @@ export const initPhotoLightbox = () => {
 	};
 
 	const showPhoto = (index: number) => {
-		activePhotoIndex = (index + openButtons.length) % openButtons.length;
-		const button = openButtons[activePhotoIndex];
-		const src = button.dataset.photoSrc;
+		activePhotoIndex = (index + activePhotos.length) % activePhotos.length;
+		const photo = activePhotos[activePhotoIndex];
+		const src = photo?.src;
 		if (!src) return;
 
 		image.src = src;
-		image.alt = button.dataset.photoAlt ?? "";
+		image.alt = photo.alt;
 		if (image.complete) requestAnimationFrame(syncLightboxControls);
 	};
 
@@ -41,7 +43,11 @@ export const initPhotoLightbox = () => {
 
 	openButtons.forEach((button, index) => {
 		button.addEventListener("click", () => {
-			showPhoto(index);
+			activePhotos = button.dataset.photoGallery
+				? JSON.parse(button.dataset.photoGallery)
+				: openButtons.map(item => ({src: item.dataset.photoSrc ?? "", alt: item.dataset.photoAlt ?? ""}));
+			navigation.forEach(control => { control.hidden = activePhotos.length < 2; });
+			showPhoto(button.dataset.photoGallery ? 0 : index);
 			lightbox.showModal();
 			document.documentElement.classList.add("has-photo-lightbox");
 			requestAnimationFrame(syncLightboxControls);
@@ -64,6 +70,7 @@ export const initPhotoLightbox = () => {
 	window.addEventListener("resize", syncLightboxControls);
 
 	lightbox.addEventListener("keydown", (event) => {
+		if (lightbox.dataset.photoNavigation === "false") return;
 		if (event.key === "ArrowLeft") showPhoto(activePhotoIndex - 1);
 		if (event.key === "ArrowRight") showPhoto(activePhotoIndex + 1);
 	});

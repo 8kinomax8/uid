@@ -1,11 +1,12 @@
 ---
+import DiscoverySession from "../../components/DiscoverySession.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import ContentFlow from "../../components/ContentFlow.astro";
 import PageHero from "../../components/PageHero.astro";
 import { lutinsAnimators, lutinsSchedule, pages } from "../../data/site";
 ---
 
-<BaseLayout title="Les Lutins musiciens" description="Jardin musical pour les enfants de 3 à 6 ans à l'Union Instrumentale de Delémont.">
+<BaseLayout title="Les Lutins musiciens" description="Jardin musical pour les enfants de 3 à 6 ans à l'Union Instrumentale Delémont.">
 	<PageHero
 		title="Les Lutins musiciens"
 		kicker="Jeunesse"
@@ -38,5 +39,5 @@ import { lutinsAnimators, lutinsSchedule, pages } from "../../data/site";
 			</div>
 		</div>
 	</section>
-	<ContentFlow block={pages.lutinsDiscovery} image="/images/lutins-decouverte-2026.jpeg" className="content-flow--poster" pointsInText reverse />
+	<DiscoverySession group="lutins" />
 </BaseLayout>

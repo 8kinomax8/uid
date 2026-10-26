@@ -4,16 +4,6 @@ export type NavItem = {
 	children?: NavItem[];
 };
 
-export type EventItem = {
-	imageOrientation?: "portrait" | "landscape";
-	title: string;
-	date: string;
-	location: string;
-	summary: string;
-	image: string;
-	href: string;
-};
-
 export type ContentBlock = {
 	title: string;
 	kicker?: string;
@@ -40,17 +30,17 @@ export type PhotoItem = {
 };
 
 export const site = {
-	name: "Union Instrumentale de Delémont",
+	name: "Union Instrumentale Delémont",
 	shortName: "UID",
 	url: "https://fanfareuid.ch",
 	description:
-		"Site officiel de l'Union Instrumentale de Delémont: news, agenda, harmonie, jeunesse et informations de contact.",
+		"Site officiel de l'Union Instrumentale Delémont: news, agenda, harmonie, jeunesse et informations de contact.",
 	address: "Rue du Temple 31, 2800 Delémont",
 	email: "info@fanfareuid.ch",
 };
 
 export const navigation: NavItem[] = [
-	{ label: "News", href: "/" },
+	{ label: "Accueil", href: "/" },
 	{
 		label: "Harmonie",
 		href: "/harmonie/",
@@ -71,38 +61,8 @@ export const navigation: NavItem[] = [
 	},
 	{ label: "Agenda", href: "/agenda/" },
 	{ label: "Photos", href: "/photos/" },
+	{ label: "Soutien", href: "/soutien/" },
 	{ label: "Contact", href: "/contact/" },
-];
-
-export const fallbackEvents: EventItem[] = [
-	{
-		title: "Concert annuel",
-		date: "Décembre 2026",
-		location: "Delémont",
-		summary:
-			"Une soirée de répertoire contrasté où l'harmonie traverse musiques de films, classiques et pièces modernes.",
-		image: "/images/Photo_ensemble.jpg",
-		href: "/agenda/",
-	},
-	{
-		title: "Session découverte Aventuriers",
-		date: "21 novembre 2026",
-		location: "Local UID",
-		summary:
-			"Une session découverte pour les enfants de 7 à 10 ans: musique, mouvement et essai des instruments.",
-		image: "/images/aventuriers-decouverte-2026.jpeg",
-		imageOrientation: "portrait",
-		href: "/jeunesse/aventuriers/",
-	},
-	{
-		title: "Festival Jurassien",
-		date: "22 novembre 2026",
-		location: "Porrentruy",
-		summary:
-			"Venez écouter l'Instrum au travail et découvrir comment se construit le son d'une harmonie.",
-		image: "/images/uid_disney.jpg",
-		href: "/contact/",
-	},
 ];
 
 export const pages = {
@@ -166,7 +126,7 @@ export const pages = {
 		],
 		points: [
 			"Répétition — vendredi, 18h15 à 19h30",
-			"Contact — cadets@fanfareuid.ch",
+			"Contact — cadets@fanfareuid.ch (Union d'Avenir et Aventuriers)",
 		],
 	},
 	aventuriers: {
@@ -176,23 +136,10 @@ export const pages = {
 			"Les Aventuriers rassemblent les jeunes de 7 ans et plus qui commencent leur formation avec l’instrument de leur choix.",
 			"En plus de leurs cours individuels avec un professeur, ils se retrouvent chaque vendredi pour une heure de répétition en groupe avec leur directeur Biagio Musumeci.",
 		],
-		points: ["Répétition en groupe — chaque vendredi", "Contact — cadets@fanfareuid.ch"],
+		points: ["Répétition en groupe — chaque vendredi", "Contact — cadets@fanfareuid.ch)"],
 		cta: {
 			label: "Inscription aux Aventuriers",
 			href: "https://docs.google.com/forms/d/e/1FAIpQLSediSYKFzgUQ0VNV6_AAhGTa3fydTvuevxOgsnC76kQs4voAA/viewform?usp=header",
-			external: true,
-		},
-	},
-	aventuriersDiscovery: {
-		title: "Session découverte",
-		kicker: "Essayer avant de commencer",
-		body: [
-			"Une à deux fois par année, les enfants peuvent découvrir les instruments et jouer avec le mouvement et le rythme. La prochaine session a lieu le samedi 21 novembre 2026, de 10h30 à 11h30, au local UID.",
-		],
-		points: ["Pour les enfants de 7 à 10 ans", "Gratuit, sur inscription jusqu’au 18 novembre 2026"],
-		cta: {
-			label: "Inscription à la session",
-			href: "https://docs.google.com/forms/d/e/1FAIpQLSemEsbuLEvF4xWsHqP358JqULbgSiJBa8QSez7fgcdaikWBNg/viewform?usp=preview",
 			external: true,
 		},
 	},
@@ -209,23 +156,6 @@ export const pages = {
 			"Contact: lutins.musiciens@fanfareuid.ch / 079 544 73 88",
 		],
 	},
-	lutinsDiscovery: {
-		title: "Session découverte",
-		kicker: "Avant-goût",
-		body: [
-			"Des sessions découvertes sont organisées deux fois par année pour permettre aux enfants et aux parents de vivre un premier moment du Jardin musical.",
-			"La prochaine session a lieu le samedi 21 novembre 2026, de 9h à 10h, au local UID. Jeux musicaux, mouvement, bricolage et découverte des sons sont au programme.",
-		],
-		points: [
-			"Pour les enfants de 3 à 6 ans",
-			"Gratuit, sur inscription — 079 544 73 88 ou lutins.musiciens@fanfareuid.ch",
-		],
-		cta: {
-			label: "Inscription à la session",
-			href: "https://docs.google.com/forms/d/e/1FAIpQLSc86eUzH4p_5RsUEmaQZfLZCdSxn1wrQMWZA5jx506WppOB4Q/viewform?usp=preview",
-			external: true,
-		},
-	},
 };
 
 export type ContentPageConfig = {
@@ -241,7 +171,7 @@ export type ContentPageConfig = {
 export const contentPages = {
 	harmonie: {
 		title: "Harmonie",
-		description: "Histoire et identité musicale de l'Union Instrumentale de Delémont.",
+		description: "Histoire et identité musicale de l'Union Instrumentale Delémont.",
 		hero: {
 			title: "Harmonie",
 			kicker: "L'Instrum",
@@ -252,7 +182,7 @@ export const contentPages = {
 	},
 	direction: {
 		title: "Direction",
-		description: "La direction de l'Union Instrumentale de Delémont.",
+		description: "La direction de l'Union Instrumentale Delémont.",
 		hero: {
 			title: "La direction",
 			kicker: "Biagio Musumeci",
@@ -265,7 +195,7 @@ export const contentPages = {
 	},
 	comite: {
 		title: "Comité",
-		description: "Le comité de l'Union Instrumentale de Delémont.",
+		description: "Le comité de l'Union Instrumentale Delémont.",
 		hero: {
 			title: "Le comité",
 			kicker: "Organisation",

@@ -1,5 +1,5 @@
 ---
-import type { EventItem } from "../data/site";
+import type { EventItem } from "../lib/wordpress";
 
 type Props = {
 	event: EventItem;
@@ -10,19 +10,19 @@ const { event, index = 0 } = Astro.props;
 ---
 
 <article class:list={["event-card", { "event-card--portrait": event.imageOrientation === "portrait" }]} style={`--delay:${index * 0.08}s`}>
-	<a href={event.href} class="event-card__media" aria-label={`En savoir plus sur ${event.title}`}>
+	<button type="button" class="event-card__media" data-photo-gallery={JSON.stringify(event.photos)} data-photo-open data-photo-src={event.image} data-photo-alt={event.title} aria-label={`Agrandir l’image : ${event.title}`}>
 		<img src={event.image} alt="" width="900" height="760" loading={index === 0 ? "eager" : "lazy"} decoding="async" />
-	</a>
+	</button>
 	<div class="event-card__content">
 		<div class="event-card__meta">
-			<span>{event.date}</span>
+			<time datetime={event.startsAt}>{event.date}</time>
 			<span>{event.location}</span>
 		</div>
 		<h3>{event.title}</h3>
 		<p>{event.summary}</p>
-		<a class="text-link" href={event.href}>
+		{event.href && <a class="text-link" href={event.href}>
 			En savoir plus
 			<span aria-hidden="true"> →</span>
-		</a>
+		</a>}
 	</div>
 </article>
