@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -57,6 +58,70 @@ class DeploymentTest(unittest.TestCase):
 
     def publish(self, release, first=False):
         return self.call('publish', release, 'a' * 40, '1' if first else '0')
+
+    def openssl_only_path(self):
+        # Expose the required shell utilities, but neither SHA utility nor an
+        # OpenSSL on PATH: the fallback must use /usr/bin/openssl explicitly.
+        tools = self.base / 'tools'
+        tools.mkdir()
+        for command in ['bash', 'dirname', 'cat', 'awk', 'cut', 'tr', 'mkdir',
+                        'cp', 'chmod', 'mktemp', 'mv', 'find', 'wc', 'touch',
+                        'sort', 'head', 'rm', 'rmdir', 'grep']:
+            executable = shutil.which(command)
+            self.assertIsNotNone(executable, command)
+            (tools / command).symlink_to(executable)
+        return str(tools)
+
+    @unittest.skipUnless(os.access('/usr/bin/openssl', os.X_OK), 'OpenSSL required')
+    def test_openssl_fallback_checks_publishes_and_rolls_back_with_sha_utilities_absent(self):
+        restricted_path = self.openssl_only_path()
+        with patch.dict(os.environ, {'PATH': restricted_path}):
+            self.assertIsNone(shutil.which('sha256sum'))
+            self.assertIsNone(shutil.which('shasum'))
+            self.assertIsNone(shutil.which('openssl'))
+            self.call('check')
+            filename = 'images/affiche = (été).jpg'
+            self.release('401-1', {filename: 'image'})
+            self.publish('401-1', True)
+            expected = hashlib.sha256(b'image').hexdigest()
+            self.assertIn(f'{expected}\t{filename}', (self.private / 'state/current.manifest').read_text().splitlines())
+            self.release('402-1')
+            self.publish('402-1')
+            self.call('rollback', '401-1')
+            self.assertEqual((self.root / filename).read_text(), 'image')
+            corrupted = self.release('403-1')
+            (corrupted / 'dist/index.html').write_text('CORRUPTED')
+            self.call('publish', '403-1', 'a'*40, '0', success=False)
+            self.assertEqual((self.root / 'index.html').read_text(), '401-1')
+            self.assertEqual((self.root / 'wordpress/wp-config.php').read_text(), 'WORDPRESS')
+            self.assertEqual((self.production / 'index.html').read_text(), 'PRODUCTION')
+
+    def test_openssl_fallback_rejects_malformed_output_and_command_errors(self):
+        restricted_path = self.openssl_only_path()
+        executable = self.base / 'fake-openssl'
+        executable.write_text('#!/bin/sh\nprintf "SHA256(stdin)= invalid\\n"\n')
+        executable.chmod(0o700)
+        # Replace the executable only in the disposable publisher copy.
+        self.script.write_text(self.script.read_text().replace('/usr/bin/openssl', str(executable)))
+        with patch.dict(os.environ, {'PATH': restricted_path}):
+            self.release('401-1')
+            for output in ['invalid', 'a'*63, 'g'*64, 'a'*64+'\n'+'b'*64]:
+                executable.write_text(f'#!/bin/sh\nprintf "%s\\n" "SHA256(stdin)= {output}"\n')
+                result = self.call('publish', '401-1', 'a'*40, '1', success=False)
+                self.assertIn('invalid SHA-256 digest', result.stderr)
+                self.assertFalse((self.root / 'index.html').exists())
+            # Even a plausible digest must not mask an OpenSSL execution error.
+            provider = (f'#!{sys.executable}\nimport hashlib,sys\n'
+                        'print("SHA2-256(stdin)= " + hashlib.sha256(sys.stdin.buffer.read()).hexdigest().upper())\n'
+                        'sys.exit(1)\n')
+            executable.write_text(provider)
+            self.call('publish', '401-1', 'a'*40, '1', success=False)
+            self.assertFalse((self.root / 'index.html').exists())
+            # The same correct digest succeeds with exit 0, including OpenSSL 3's
+            # prefix and uppercase hex, normalized to the existing lowercase manifest.
+            executable.write_text(provider.replace('sys.exit(1)', 'sys.exit(0)'))
+            self.publish('401-1', True)
+            self.assertEqual((self.root / 'index.html').read_text(), '401-1')
 
     def test_first_deployment_requires_explicit_manual_initialization(self):
         self.release('101-1')

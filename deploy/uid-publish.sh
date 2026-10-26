@@ -26,7 +26,16 @@ disjoint() { [[ "$1" != "$2" && "$1/" != "$2/"* && "$2/" != "$1/"* ]]; }
 [[ -d "$private/incoming" && ! -L "$private/incoming" && -d "$private/releases" && ! -L "$private/releases" && -d "$private/state" && ! -L "$private/state" ]] || fail 'Prepare incoming, releases and state directories first'
 if command -v sha256sum >/dev/null; then hash() { sha256sum "$1" | cut -d ' ' -f 1; }
 elif command -v shasum >/dev/null; then hash() { shasum -a 256 "$1" | cut -d ' ' -f 1; }
-else fail 'sha256sum or shasum is required'; fi
+elif [[ -x /usr/bin/openssl ]]; then
+ hash() {
+  local output digest
+  # stdin keeps filenames (spaces, parentheses, '=') out of OpenSSL's output.
+  output=$(/usr/bin/openssl dgst -sha256 < "$1") || return 1
+  digest=$(printf '%s\n' "$output" | awk 'NF {print tolower($NF)}') || return 1
+  [[ "$digest" =~ ^[a-f0-9]{64}$ ]] || fail 'OpenSSL returned an invalid SHA-256 digest'
+  printf '%s\n' "$digest"
+ }
+else fail 'sha256sum, shasum or /usr/bin/openssl is required'; fi
 valid_rel() {
  local value=$1 part lower
  [[ -n "$value" && "$value" != /* && "$value" != *\\* && "$value" != *//* && "$value" != *[[:cntrl:]]* ]] || return 1

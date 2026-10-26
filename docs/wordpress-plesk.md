@@ -60,7 +60,7 @@ Si l’ancienne configuration WordPress possède déjà des fichiers `pending-*.
   /private/uid-dev/server.env check
 ```
 
-Ce contrôle ne publie rien et ne marque pas le site comme initialisé. Vérifier aussi la présence de `sha256sum` ou `shasum`, et des utilitaires usuels `awk`, `find`, `sort`, `cp`, `mv`, `mktemp`. Les scripts n’utilisent pas PHP CLI sur Plesk.
+Ce contrôle ne publie rien et ne marque pas le site comme initialisé. Vérifier aussi la présence de `sha256sum`, `shasum` ou `/usr/bin/openssl` (solution de remplacement avec `dgst -sha256`), et des utilitaires usuels `awk`, `find`, `sort`, `cp`, `mv`, `mktemp`. La sortie OpenSSL est normalisée en une empreinte de 64 caractères hexadécimaux minuscules ; une erreur ou une sortie invalide bloque la vérification. Les scripts n’utilisent pas PHP CLI sur Plesk.
 
 ### Clé SSH dédiée à GitHub
 
