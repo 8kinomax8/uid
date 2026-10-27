@@ -68,6 +68,24 @@ validate_manifest() {
  done < "$manifest"
  awk -F '\t' 'seen[$2]++ {exit 1}' "$manifest" || fail 'Duplicate manifest path'
 }
+prepare_public_parent() {
+ local rel=$1 current=$root part index
+ local -a parts
+ valid_rel "$rel" || fail 'Forbidden public directory path'
+ IFS=/ read -r -a parts <<< "$rel"
+ # Only ancestors of this managed file, below the DEV root. Never recursively
+ # chmod the web root: WordPress, hidden files and private state stay untouched.
+ for ((index=0; index<${#parts[@]}-1; index++)); do
+  part=${parts[$index]}
+  current="$current/$part"
+  [[ ! -L "$current" ]] || fail 'Symlink in public directory path'
+  if [[ ! -e "$current" ]]; then
+   mkdir -- "$current" 2>/dev/null || [[ -d "$current" && ! -L "$current" ]] || fail 'Cannot create public directory'
+  fi
+  [[ -d "$current" && ! -L "$current" ]] || fail 'Non-directory in public directory path'
+  chmod 755 "$current"
+ done
+}
 copy_atomic() (
  # A subshell keeps these traps and file descriptors local to this copy.
  local source=$1 target=$2 parent candidate attempt tempdir='' owned_file=0
@@ -90,7 +108,7 @@ copy_atomic() (
  [[ "$target" == "$root/"* ]] || fail 'Copy target outside DEV root'
  check_target "${target#"$root/"}"
  parent=$(dirname -- "$target")
- mkdir -p -- "$parent"
+ prepare_public_parent "${target#"$root/"}"
  umask 077
  for ((attempt=0; attempt<64; attempt++)); do
   candidate="$parent/.uid-copy.$$.$RANDOM.$attempt"

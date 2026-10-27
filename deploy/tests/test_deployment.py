@@ -214,6 +214,102 @@ class DeploymentTest(unittest.TestCase):
         self.assertEqual((self.root / '.htaccess').read_text(), 'EXISTING RULES')
         self.assertEqual((self.production / 'index.html').read_text(), 'PRODUCTION')
 
+    def protected_permission_fixture(self):
+        # Deliberately different modes make an overbroad chmod visible.
+        protected = {
+            self.root / 'wordpress': 0o710,
+            self.root / 'wordpress/wp-config.php': 0o640,
+            self.root / '.uid-dev-target': 0o600,
+            self.root / '.htaccess': 0o640,
+            self.root / 'unmanaged.txt': 0o600,
+            self.private: 0o700,
+            self.private / 'incoming': 0o700,
+            self.private / 'releases': 0o700,
+            self.private / 'state': 0o700,
+            self.config: 0o600,
+            self.script: 0o600,
+        }
+        for name in ['bin', 'cms-state']:
+            directory = self.private / name
+            directory.mkdir()
+            protected[directory] = 0o700
+        secret = self.private / 'cms-state/secret'
+        secret.write_text('private test data')
+        protected[secret] = 0o600
+        unmanaged = self.root / 'unmanaged-directory'
+        unmanaged.mkdir()
+        protected[unmanaged] = 0o700
+        for file, mode in protected.items():
+            file.chmod(mode)
+        return protected
+
+    def assert_public_modes(self):
+        for line in (self.private / 'state/current.manifest').read_text().splitlines():
+            _, relative = line.split('\t')
+            file = self.root / relative
+            self.assertEqual(file.stat().st_mode & 0o7777, 0o644, relative)
+            directory = file.parent
+            while directory != self.root:
+                self.assertEqual(directory.stat().st_mode & 0o7777, 0o755, str(directory))
+                directory = directory.parent
+
+    def assert_protected_modes(self, protected):
+        for file, expected in protected.items():
+            self.assertEqual(file.stat().st_mode & 0o7777, expected, str(file))
+
+    def test_public_permissions_fix_new_and_existing_directories_only(self):
+        protected = self.protected_permission_fixture()
+        for name in ['_astro', 'agenda']:
+            directory = self.root / name
+            directory.mkdir(mode=0o700)
+            directory.chmod(0o700)
+        untouched = self.root / '_astro/unmanaged.txt'
+        untouched.write_text('keep private mode')
+        untouched.chmod(0o600)
+        protected[untouched] = 0o600
+        self.release('501-1', {'images/deep/poster.jpg': 'poster'})
+        self.publish('501-1', True)
+        self.assert_public_modes()
+        self.assert_protected_modes(protected)
+        self.assertEqual((self.private / 'state/current.manifest').stat().st_mode & 0o7777, 0o600)
+        self.assertEqual(list(self.root.rglob('.uid-copy.*')), [])
+
+    def test_rollback_repairs_public_modes_without_chmod_private_archives(self):
+        protected = self.protected_permission_fixture()
+        self.release('501-1', {'images/deep/poster.jpg': 'poster'})
+        self.publish('501-1', True)
+        self.release('502-1', {'new/page/index.html': 'new page'})
+        self.publish('502-1')
+        archive = self.private / 'releases/501-1/dist'
+        # Simulate a restrictive archive and the public 700/600 regression.
+        for file in archive.rglob('*'):
+            file.chmod(0o700 if file.is_dir() else 0o600)
+        for name in ['_astro', 'agenda', 'images', 'images/deep']:
+            (self.root / name).chmod(0o700)
+        for name in ['index.html', 'agenda/index.html', '_astro/shared.js']:
+            (self.root / name).chmod(0o600)
+        archive_modes = {file: file.stat().st_mode & 0o7777 for file in archive.rglob('*')}
+        self.call('rollback', '501-1')
+        self.assert_public_modes()
+        self.assert_protected_modes(protected)
+        self.assert_protected_modes(archive_modes)
+        self.assertEqual((self.root / 'index.html').read_text(), '501-1')
+
+    def test_symlink_collision_aborts_before_changing_directory_permissions(self):
+        protected = self.protected_permission_fixture()
+        directory = self.root / '_astro'
+        directory.mkdir(mode=0o700)
+        directory.chmod(0o700)
+        self.production.chmod(0o700)
+        protected[directory] = 0o700
+        protected[self.production] = 0o700
+        self.release('501-1', {'images/poster.jpg': 'poster'})
+        (self.root / 'images').symlink_to(self.production, target_is_directory=True)
+        self.call('publish', '501-1', 'a'*40, '1', success=False)
+        self.assert_protected_modes(protected)
+        self.assertEqual((self.production / 'index.html').read_text(), 'PRODUCTION')
+        self.assertFalse((self.root / 'index.html').exists())
+
     def test_unmanaged_collision_and_external_edits_abort_before_publication(self):
         self.release('101-1')
         (self.root / 'index.html').write_text('UNOWNED')
