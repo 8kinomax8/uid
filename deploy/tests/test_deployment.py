@@ -61,11 +61,12 @@ class DeploymentTest(unittest.TestCase):
 
     def openssl_only_path(self):
         # Expose the required shell utilities, but neither SHA utility nor an
-        # OpenSSL on PATH: the fallback must use /usr/bin/openssl explicitly.
+        # OpenSSL or mktemp on PATH: the chroot needs neither temporary-file utility
+        # nor a PATH lookup for the OpenSSL fallback.
         tools = self.base / 'tools'
         tools.mkdir()
         for command in ['bash', 'dirname', 'cat', 'awk', 'cut', 'tr', 'mkdir',
-                        'cp', 'chmod', 'mktemp', 'mv', 'find', 'wc', 'touch',
+                        'cp', 'chmod', 'mv', 'find', 'wc', 'touch',
                         'sort', 'head', 'rm', 'rmdir', 'grep']:
             executable = shutil.which(command)
             self.assertIsNotNone(executable, command)
@@ -73,12 +74,13 @@ class DeploymentTest(unittest.TestCase):
         return str(tools)
 
     @unittest.skipUnless(os.access('/usr/bin/openssl', os.X_OK), 'OpenSSL required')
-    def test_openssl_fallback_checks_publishes_and_rolls_back_with_sha_utilities_absent(self):
+    def test_openssl_fallback_publishes_and_rolls_back_without_sha_utilities_or_mktemp(self):
         restricted_path = self.openssl_only_path()
         with patch.dict(os.environ, {'PATH': restricted_path}):
             self.assertIsNone(shutil.which('sha256sum'))
             self.assertIsNone(shutil.which('shasum'))
             self.assertIsNone(shutil.which('openssl'))
+            self.assertIsNone(shutil.which('mktemp'))
             self.call('check')
             filename = 'images/affiche = (été).jpg'
             self.release('401-1', {filename: 'image'})
@@ -122,6 +124,71 @@ class DeploymentTest(unittest.TestCase):
             executable.write_text(provider.replace('sys.exit(1)', 'sys.exit(0)'))
             self.publish('401-1', True)
             self.assertEqual((self.root / 'index.html').read_text(), '401-1')
+
+    def copy_probe(self, before_create=''):
+        # Exercise the actual copy function independently of the outer publication
+        # lock, in a disposable script only. Production has no test-mode bypass.
+        source = self.script.read_text().replace(
+            'candidate="$parent/.uid-copy.$$.$RANDOM.$attempt"',
+            'candidate="$parent/.uid-copy.test.$attempt"')
+        source = source.replace(' set -o noclobber\n', before_create + ' set -o noclobber\n', 1)
+        source = source.replace('state="$private/state"', 'copy_atomic "$3" "$4"\nexit 0\nstate="$private/state"', 1)
+        probe = self.private / 'copy-probe.sh'
+        probe.write_text(source)
+        return probe
+
+    def test_temporary_directory_collisions_are_never_reused_or_removed(self):
+        source = self.base / 'source.txt'
+        source.write_text('new content')
+        occupied = self.root / '.uid-copy.test.0'
+        occupied.write_text('existing file')
+        link = self.root / '.uid-copy.test.1'
+        link.symlink_to(self.production / 'absent')
+        directory = self.root / '.uid-copy.test.2'
+        directory.mkdir()
+        (directory / 'keep').write_text('existing directory')
+        target = self.root / 'copy.txt'
+        result = subprocess.run(['bash', str(self.copy_probe()), str(self.config), 'copy', str(source), str(target)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(target.read_text(), 'new content')
+        self.assertEqual(occupied.read_text(), 'existing file')
+        self.assertTrue(link.is_symlink())
+        self.assertFalse((self.production / 'absent').exists())
+        self.assertEqual((directory / 'keep').read_text(), 'existing directory')
+        self.assertFalse((self.root / '.uid-copy.test.3').exists())
+
+    def test_exclusive_temporary_file_creation_refuses_existing_files_and_symlinks(self):
+        source = self.base / 'source.txt'
+        source.write_text('preserve source')
+        target = self.root / 'copy.txt'
+        target.write_text('preserve destination')
+        for injection in [' printf occupied > "$tempdir/content"\n',
+                          ' ln -s -- "$source" "$tempdir/content"\n']:
+            with self.subTest(injection=injection):
+                probe = self.copy_probe(injection)
+                result = subprocess.run(['bash', str(probe), str(self.config), 'copy', str(source), str(target)], capture_output=True, text=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(source.read_text(), 'preserve source')
+                self.assertEqual(target.read_text(), 'preserve destination')
+        # Unexpected entries are retained for inspection; only owned files are removed.
+        self.assertEqual((self.root / '.uid-copy.test.0/content').read_text(), 'occupied')
+        self.assertTrue((self.root / '.uid-copy.test.1/content').is_symlink())
+        self.assertEqual((self.root / '.uid-copy.test.1').stat().st_mode & 0o777, 0o700)
+
+    def test_concurrent_atomic_copies_reserve_separate_temporary_directories(self):
+        probe = self.copy_probe()
+        running = []
+        for index in range(4):
+            source = self.base / f'source-{index}'
+            source.write_bytes(bytes([index]) * (4 * 1024 * 1024))
+            target = self.root / f'copy-{index}'
+            process = subprocess.Popen(['bash', str(probe), str(self.config), 'copy', str(source), str(target)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            running.append((process, source, target))
+        for process, source, target in running:
+            _, error = process.communicate(timeout=30)
+            self.assertEqual(process.returncode, 0, error.decode())
+            self.assertEqual(target.read_bytes(), source.read_bytes())
+        self.assertEqual(list(self.root.glob('.uid-copy.*')), [])
 
     def test_first_deployment_requires_explicit_manual_initialization(self):
         self.release('101-1')

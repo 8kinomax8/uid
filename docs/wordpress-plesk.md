@@ -60,7 +60,7 @@ Si l’ancienne configuration WordPress possède déjà des fichiers `pending-*.
   /private/uid-dev/server.env check
 ```
 
-Ce contrôle ne publie rien et ne marque pas le site comme initialisé. Vérifier aussi la présence de `sha256sum`, `shasum` ou `/usr/bin/openssl` (solution de remplacement avec `dgst -sha256`), et des utilitaires usuels `awk`, `find`, `sort`, `cp`, `mv`, `mktemp`. La sortie OpenSSL est normalisée en une empreinte de 64 caractères hexadécimaux minuscules ; une erreur ou une sortie invalide bloque la vérification. Les scripts n’utilisent pas PHP CLI sur Plesk.
+Ce contrôle ne publie rien et ne marque pas le site comme initialisé. Vérifier aussi la présence de `sha256sum`, `shasum` ou `/usr/bin/openssl` (solution de remplacement avec `dgst -sha256`), et des utilitaires usuels `awk`, `find`, `sort`, `cp`, `mv`, `mkdir`, `rmdir`, `cat`, `chmod`. La sortie OpenSSL est normalisée en une empreinte de 64 caractères hexadécimaux minuscules ; une erreur ou une sortie invalide bloque la vérification. Les scripts n’utilisent ni `mktemp` ni PHP CLI sur Plesk.
 
 ### Clé SSH dédiée à GitHub
 
@@ -193,6 +193,8 @@ Rsync utilise explicitement le binaire distant `/usr/bin/rsync` et envoie unique
 Le moteur vérifie tous les fichiers existants avant de modifier la racine. Un fichier non géré n’est ni écrasé ni supprimé. Un fichier géré modifié hors déploiement provoque un arrêt pour inspection. Les assets sont publiés avant le HTML. Les suppressions ne concernent que les fichiers de l’ancien manifeste absents du nouveau ; les anciens assets Astro des versions récentes sont conservés pour les pages déjà ouvertes.
 
 Deux protections empêchent les publications concurrentes : groupe GitHub unique `uid-development` avec file d’attente et sans annuler un run en cours, puis verrou serveur. Les builds GitHub prennent le dernier `main` au démarrage, y compris pour WordPress. Les trois dernières versions statiques publiées sont conservées dans le répertoire privé. Un journal permet la restauration des fichiers gérés si la publication échoue.
+
+La copie atomique fonctionne sans `mktemp` : `mkdir` réserve exclusivement un nouveau répertoire `.uid-copy.*` avec des droits 0700 dans le dossier de destination. Un nom déjà occupé (fichier, répertoire ou lien symbolique) est ignoré, jamais réutilisé ni supprimé. Le fichier temporaire y est ouvert exclusivement avec le mode Bash `noclobber`, puis renommé sur le même système de fichiers après une nouvelle vérification du chemin cible. Le nettoyage ne retire que le fichier créé par cette copie et son répertoire vide ; les entrées inattendues sont conservées pour inspection. Pour appliquer ce correctif sur un serveur déjà préparé, réinstaller uniquement `deploy/uid-publish.sh` dans `/private/uid-dev/bin/uid-publish.sh`, sans lancer de publication.
 
 ### Rollback manuel
 

@@ -68,14 +68,48 @@ validate_manifest() {
  done < "$manifest"
  awk -F '\t' 'seen[$2]++ {exit 1}' "$manifest" || fail 'Duplicate manifest path'
 }
-copy_atomic() {
- local source=$1 target=$2 temp
- mkdir -p -- "$(dirname -- "$target")"
- temp=$(mktemp "$(dirname -- "$target")/.uid-copy.XXXXXX")
- cp -- "$source" "$temp"
- chmod 644 "$temp"
- mv -f -- "$temp" "$target"
-}
+copy_atomic() (
+ # A subshell keeps these traps and file descriptors local to this copy.
+ local source=$1 target=$2 parent candidate attempt tempdir='' owned_file=0
+ cleanup_copy() {
+  local code=$?
+  trap - EXIT INT TERM
+  if [[ -n "$tempdir" && -d "$tempdir" && ! -L "$tempdir" ]]; then
+   if [[ "$owned_file" == 1 ]]; then
+    exec 3>&-
+    rm -f -- "$tempdir/content" || code=1
+   fi
+   # Never recursively remove a collision or an unexpected file.
+   rmdir -- "$tempdir" || code=1
+  fi
+  exit "$code"
+ }
+ trap cleanup_copy EXIT
+ trap 'exit 130' INT
+ trap 'exit 143' TERM
+ [[ "$target" == "$root/"* ]] || fail 'Copy target outside DEV root'
+ check_target "${target#"$root/"}"
+ parent=$(dirname -- "$target")
+ mkdir -p -- "$parent"
+ umask 077
+ for ((attempt=0; attempt<64; attempt++)); do
+  candidate="$parent/.uid-copy.$$.$RANDOM.$attempt"
+  # mkdir reserves a new directory atomically; existing files, directories and
+  # symlinks are collisions, never candidates we reuse or clean up.
+  if mkdir -- "$candidate" 2>/dev/null; then tempdir=$candidate; break; fi
+  [[ -e "$candidate" || -L "$candidate" ]] || fail 'Cannot create private copy directory'
+ done
+ [[ -n "$tempdir" ]] || fail 'Cannot reserve a unique copy directory'
+ set -o noclobber
+ exec 3> "$tempdir/content"
+ owned_file=1
+ set +o noclobber
+ cat -- "$source" >&3
+ exec 3>&-
+ chmod 644 "$tempdir/content"
+ check_target "${target#"$root/"}"
+ mv -f -- "$tempdir/content" "$target"
+)
 state="$private/state"
 transaction="$private/transaction"
 recover() {
