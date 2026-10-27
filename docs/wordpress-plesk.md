@@ -107,6 +107,28 @@ Créer un **fine-grained personal access token** GitHub limité au dépôt `8kin
 - Les appels snapshot/ack/fail utilisent HMAC-SHA256, un timestamp limité à cinq minutes, un nonce à usage unique et un token de snapshot lié au run. Aucune clé GitHub ou SSH n’est exposée dans cet endpoint.
 - Le menu « Site UID » affiche le dernier succès, les erreurs et le nombre de modifications en attente. Une copie de l’extension sur un WordPress de production ne peut pas déclencher DEV : le domaine DEV et l’environnement sont vérifiés.
 
+### Diagnostiquer un échec snapshot sans exposer de secrets
+
+Le protocole est commun à Python et PHP : clé HMAC = les **64 caractères hexadécimaux comme texte**, sans décodage binaire et sans espaces ajoutés ; message = `timestamp + "\n" + nonce + "\n" + corps JSON brut UTF-8`. Le timestamp est exprimé en secondes Unix (tolérance de cinq minutes), le nonce contient 32 caractères hexadécimaux et la signature est le HMAC-SHA256 en hexadécimal minuscule. Les en-têtes sont `X-UID-Time`, `X-UID-Nonce`, `X-UID-Signature` et `Content-Type: application/json` ; leur casse n’a pas d’incidence.
+
+Le corps compact envoyé pour un snapshot est `{"operation":"snapshot","run":"ID_DU_RUN"}`, sans retour à la ligne final. Les autres opérations sont `ack` et `fail`, avec le token du snapshot dans le corps. La réponse attendue est un objet JSON avec `token` (UUID) pour `snapshot`, ou `{"ok":true}` pour les deux autres opérations. Un vecteur fictif partagé dans les tests vérifie la formule Python/PHP.
+
+Le message historique « CMS handshake failed after three attempts » ne permettait pas de distinguer les erreurs réseau des HTTP 429/5xx. Un HTTP 403 d’authentification provoquait déjà un arrêt immédiat, avec un autre message. Le POST non signé qui retourne `uid_auth` confirme la présence du garde, mais ne vérifie ni l’égalité des secrets ni l’écriture des fichiers après authentification.
+
+Le client affiche maintenant une ligne non sensible par tentative, puis la dernière cause en cas d’échec :
+
+| Diagnostic | Vérification à effectuer |
+| --- | --- |
+| `category=authentication http=403 wp_code=uid_auth` | Secrets textuels identiques, horloges, conservation des en-têtes et du corps par les intermédiaires |
+| `category=http http=503 wp_code=uid_disabled` | Environnement DEV, format du secret, chemins PHP complets et droits du répertoire privé |
+| `category=http http=503 wp_code=uid_lock` | Accès du processus PHP au fichier `cms-state/github-dispatch.lock` ; un dossier inscriptible ne garantit pas l’accès à un verrou existant |
+| `category=http http=503 wp_code=uid_storage` | Écriture/renommage des fichiers privés par PHP, espace disque et restrictions de l’hébergement |
+| `category=http http=429` ou `http=502/504` | Limitation de débit, proxy ou indisponibilité serveur |
+| `category=network reason=dns/timeout/tls_certificate/...` | Connectivité et chaîne TLS depuis le runner GitHub, distinctes d’un test depuis le navigateur |
+| `category=response_format reason=invalid_json/...` | Réponse inattendue (par exemple une page HTML de protection), absence du token ou de `ok:true` |
+
+Seuls le statut HTTP, des catégories fixes et une liste fermée de codes WordPress sont affichés. Les corps et messages arbitraires, les exceptions réseau brutes, les secrets, les tokens et les signatures ne sont jamais affichés. Ne pas activer de trace HTTP brute pour compléter le diagnostic. Aucune redirection n’est suivie et les contrôles HMAC/TLS restent actifs. Corriger les propriétaires/droits nécessaires plutôt que rendre les fichiers privés publics.
+
 **Ne pas dépendre des visites pour WP-Cron.** Dans les tâches planifiées Plesk DEV, choisir une récupération d’URL chaque minute vers :
 
 ```text

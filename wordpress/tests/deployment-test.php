@@ -53,6 +53,8 @@ class Request {
     function get_json_params() { return json_decode($this->body,true); }
 }
 require __DIR__ . '/../uid-headless/uid-headless.php';
+$vector=json_decode(file_get_contents(__DIR__ . '/hmac-vector.json'),true);
+check(hash_hmac('sha256', $vector['timestamp']."\n".$vector['nonce']."\n".$vector['body'], $vector['key']) === $vector['signature'], 'shared Python/PHP HMAC vector matches');
 function request($operation,$token=null,$run='123') {
     $data=['operation'=>$operation,'run'=>$run];if($token)$data['token']=$token;
     $req=new Request($data);

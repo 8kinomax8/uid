@@ -1,0 +1,7 @@
+{
+  "key": "abababababababababababababababababababababababababababababababab",
+  "timestamp": "1761523200",
+  "nonce": "0123456789abcdef0123456789abcdef",
+  "body": "{\"operation\":\"snapshot\",\"run\":\"123\"}",
+  "signature": "a7d66f8f2e906a90bac3f648f8f28ee71d0fbecba41dcd82deef5527631547b8"
+}

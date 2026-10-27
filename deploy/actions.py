@@ -3,11 +3,14 @@
 import argparse
 import hashlib
 import hmac
+import http.client
 import json
 import os
 from pathlib import Path
 import re
 import shlex
+import socket
+import ssl
 import subprocess
 import sys
 import time
@@ -77,15 +80,72 @@ def signature(secret, stamp, nonce, body):
     return hmac.new(secret.encode(), f'{stamp}\n{nonce}\n'.encode() + body, hashlib.sha256).hexdigest()
 
 
+CMS_ERROR_HINTS = {
+    'uid_disabled': 'check DEV environment, HMAC configuration and private directory permissions',
+    'uid_auth': 'check identical text secrets, clocks and transmission of headers/body',
+    'uid_replay': 'nonce already used or nonce file could not be created',
+    'uid_payload': 'check operation and GitHub run ID',
+    'uid_lock': 'check PHP access to cms-state/github-dispatch.lock',
+    'uid_storage': 'check PHP write/rename access and free space in cms-state',
+    'uid_token': 'snapshot absent or invalid',
+    'uid_run': 'snapshot belongs to another GitHub run',
+    'rest_no_route': 'check DEV plugin version and REST route',
+    'rest_invalid_json': 'request JSON was rejected',
+}
+
+
+def cms_http_diagnostic(error):
+    # Never log arbitrary response bodies/messages: they can contain credentials.
+    code = None
+    try:
+        raw = error.read(4097)
+        data = json.loads(raw) if len(raw) <= 4096 else None
+        candidate = data.get('code') if isinstance(data, dict) else None
+        if isinstance(candidate, str) and candidate in CMS_ERROR_HINTS:
+            code = candidate
+    except (ValueError, OSError, http.client.HTTPException):
+        pass
+    category = 'authentication' if code in ('uid_auth', 'uid_run') or error.code == 401 else 'http'
+    detail = f'category={category} http={error.code}'
+    if code:
+        detail += f' wp_code={code}; {CMS_ERROR_HINTS[code]}'
+    return detail
+
+
+def cms_network_diagnostic(error):
+    reason = error.reason if isinstance(error, urllib.error.URLError) else error
+    # Classify by type, not str(error): exception text may contain a signed request.
+    if isinstance(reason, ssl.SSLCertVerificationError):
+        kind = 'tls_certificate'
+    elif isinstance(reason, ssl.SSLError):
+        kind = 'tls'
+    elif isinstance(reason, socket.gaierror):
+        kind = 'dns'
+    elif isinstance(reason, TimeoutError):
+        kind = 'timeout'
+    elif isinstance(reason, ConnectionRefusedError):
+        kind = 'connection_refused'
+    elif isinstance(reason, ConnectionResetError):
+        kind = 'connection_reset'
+    elif isinstance(reason, http.client.HTTPException):
+        kind = 'http_transport'
+    else:
+        kind = 'connection'
+    return f'category=network reason={kind}'
+
+
 def cms(operation, snapshot_file):
     environment()
+    if operation not in ('snapshot', 'ack', 'fail'):
+        raise ValueError('Unknown CMS operation')
     secret = os.environ.get('UID_CMS_HMAC_SECRET', '')
     if not re.fullmatch(r'[a-f0-9]{64}', secret):
         raise ValueError('A 32-byte hex CMS HMAC secret is required')
     payload = {'operation': operation, 'run': os.environ.get('GITHUB_RUN_ID', '')}
     if operation != 'snapshot':
         payload['token'] = json.loads(Path(snapshot_file).read_text())['token']
-    body = json.dumps(payload, separators=(',', ':')).encode()
+    body = json.dumps(payload, separators=(',', ':')).encode('utf-8')
+    last_failure = 'category=unknown'
     for attempt in range(3):
         stamp, nonce = str(int(time.time())), uuid.uuid4().hex
         request = urllib.request.Request(DEV_ORIGIN + '/wordpress/wp-json/uid-headless/v1/deployment', data=body, method='POST', headers={
@@ -94,22 +154,37 @@ def cms(operation, snapshot_file):
         })
         try:
             with urllib.request.build_opener(NoRedirect).open(request, timeout=30) as response:
-                result = json.load(response)
+                raw = response.read(65537)
+            if len(raw) > 65536:
+                raise RuntimeError(f'CMS {operation}: category=response_format reason=response_too_large')
+            try:
+                result = json.loads(raw)
+            except (ValueError, UnicodeDecodeError):
+                raise RuntimeError(f'CMS {operation}: category=response_format reason=invalid_json') from None
+            if not isinstance(result, dict):
+                raise RuntimeError(f'CMS {operation}: category=response_format reason=expected_object')
             if operation == 'snapshot':
-                if not re.fullmatch(r'[a-f0-9-]{36}', result.get('token', '')):
-                    raise ValueError('Invalid CMS snapshot token')
+                token = result.get('token')
+                if not isinstance(token, str) or not re.fullmatch(r'[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}', token):
+                    raise RuntimeError('CMS snapshot: category=response_format reason=invalid_snapshot_token')
                 target = Path(snapshot_file)
                 target.write_text(json.dumps(result))
                 target.chmod(0o600)
+            elif result.get('ok') is not True:
+                raise RuntimeError(f'CMS {operation}: category=response_format reason=missing_ok_true')
             return
         except urllib.error.HTTPError as error:
+            last_failure = cms_http_diagnostic(error)
+            error.close()
+            print(f'CMS {operation} attempt={attempt + 1}/3: {last_failure}', file=sys.stderr)
             if error.code < 500 and error.code != 429:
-                raise RuntimeError(f'CMS handshake rejected (HTTP {error.code})') from None
-        except (urllib.error.URLError, TimeoutError):
-            pass
+                raise RuntimeError(f'CMS {operation} rejected: {last_failure}') from None
+        except (urllib.error.URLError, TimeoutError, ConnectionError, ssl.SSLError, http.client.HTTPException) as error:
+            last_failure = cms_network_diagnostic(error)
+            print(f'CMS {operation} attempt={attempt + 1}/3: {last_failure}', file=sys.stderr)
         if attempt < 2:
             time.sleep(2 ** attempt)
-    raise RuntimeError('CMS handshake failed after three attempts')
+    raise RuntimeError(f'CMS {operation} handshake failed after three attempts: {last_failure}') from None
 
 
 def ssh_settings():
