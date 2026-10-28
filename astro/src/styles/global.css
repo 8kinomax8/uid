@@ -1383,8 +1383,8 @@ h3 {
 /* Shared editorial rhythm and controls. */
 html { scrollbar-color: var(--secondary) var(--night); scroll-padding-top: 24px; }
 main:focus { outline: none; }
-.skip-link { position: fixed; top: 12px; left: 20px; z-index: 100; padding: 12px 20px; background: var(--accent-fill); color: var(--accent-ink); transform: translateY(-160%); }
-.skip-link:focus { transform: translateY(0); }
+.skip-link { position: fixed; top: 12px; left: 20px; z-index: 100; padding: 12px 20px; background: var(--accent-fill); color: var(--accent-ink); clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; white-space: nowrap; }
+.skip-link:focus-visible { clip-path: none; width: auto; height: auto; overflow: visible; }
 .home-hero > h1 { grid-column: 1 / -1; font-size: clamp(2rem, 6.8vw, 6rem); line-height: 1.02; }
 .home-hero__media { margin: 0; overflow: hidden; }
 .home-hero__media img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius); }
@@ -1554,9 +1554,10 @@ main:focus { outline: none; }
 	.event-card__content { grid-template-columns: 1fr; padding: 0; }
 	.event-card .text-link { grid-column: 1; grid-row: auto; }
 	.content-flow, .content-flow--reverse { gap: 32px; padding-bottom: 64px; }
-	.brand-mark { background: #202623; border-radius: var(--radius); padding: 8px; }
+	.brand-mark { background: var(--night); border-radius: var(--radius); padding: 8px; }
+	[data-theme="light"] .brand-mark { background: #202623; }
 	.brand-mark img { width: 74px; height: auto; }
-	body:has(.menu-panel.is-open) .site-header { position: fixed; top: 0; left: var(--gutter); }
+	.site-header { position: sticky; top: 0; }
 }
 @media (max-width: 560px) {
 	.home-hero > h1 { font-size: clamp(1.75rem, 9.2vw, 2.6rem); }
@@ -1669,3 +1670,26 @@ html.has-photo-lightbox .wand-cursor-tip { opacity: 0; }
 .support-projects__grid h3 { font-size: clamp(1.5rem, 2.5vw, 2rem); }
 .support-projects__grid .text-link { display: inline-block; max-width: 100%; padding-block: 12px; }
 @media (max-width: 900px) { .support-projects__grid { grid-template-columns: 1fr; gap: 24px; } }
+
+/* Practical pages go directly to their content, without the photo hero. */
+.page-practical { padding-top: 24px; }
+.practical-heading { width: var(--container); margin-inline: auto; }
+.practical-title { font-size: clamp(2.25rem, 5vw, 4rem); margin: 0 0 24px; }
+html.has-custom-cursor [data-native-cursor] { cursor: auto !important; }
+html.is-over-native-cursor .wand-cursor,
+html.is-over-native-cursor .wand-cursor-tip { opacity: 0; transition: none; }
+
+/* CSS starts these together on the first painted frame, before the JS bundle arrives. */
+@media (prefers-reduced-motion: no-preference) {
+ .home-hero > h1, .home-hero__content, .home-hero__media,
+ .page-hero__content, .page-hero__media {
+  animation: page-arrival 620ms var(--ease-out) 80ms both;
+ }
+}
+@keyframes page-arrival {
+ from { opacity: 0; transform: translateY(16px); }
+ to { opacity: 1; transform: translateY(0); }
+}
+.photo-wall__item { background: var(--surface); }
+
+img[data-deferred-src] { visibility: hidden; }

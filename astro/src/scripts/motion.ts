@@ -1,3 +1,4 @@
+import { initDeferredImages } from "./deferred-images";
 import { initLinkLabels } from "./links";
 import { initEventMedia } from "./event-media";
 import { initCursor } from "./cursor";
@@ -16,3 +17,5 @@ initRevealAnimations();
 
 initLinkLabels();
 initEventMedia();
+
+initDeferredImages();

@@ -25,7 +25,7 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
    res.setHeader('X-WP-TotalPages',mode==='empty'?'0':'1');
    data=mode==='empty'?[]:[{id:1,title:{rendered:'TEST concert'},featured_media:5,meta:{uid_gallery_ids:[6]},acf:{date_heure:'2099-11-21 10:30:00',description:'<script>unsafe()</script>',lieu:'TEST local',lien_externe:''}}];
   } else if(url.pathname.includes('/media/')) data={id:Number(url.pathname.split('/').at(-1)),source_url:'https://example.com/test.jpg',alt_text:'TEST affiche',media_details:{width:900,height:1200}};
-  else if(url.pathname.endsWith('/13')) data={acf:{google_calendar_id:mode==='empty'?'':'test@group.calendar.google.com'}};
+  else if(url.pathname.endsWith('/13')) data={acf:{google_calendar_id:mode==='empty'?'':'test@group.calendar.google.com\nsecond@group.calendar.google.com'}};
   else if(url.pathname.endsWith('/11')) data={acf:{session_active:false}};
   else data={acf:{session_active:mode!=='empty',session_affiche:5,session_date:'20991121',session_heure_debut:'10:30:00',session_heure_fin:'11:30:00',session_inscription_url:'https://example.com/inscription',session_description:'TEST découverte'}};
   res.end(JSON.stringify(data));
@@ -42,7 +42,22 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
  const lutins=fs.readFileSync(path.join(temp,'populated/jeunesse/lutins-musiciens/index.html'),'utf8');
  const aventuriers=fs.readFileSync(path.join(temp,'populated/jeunesse/aventuriers/index.html'),'utf8');
  assert.ok(!lutins.includes('content-flow--poster'));assert.ok(aventuriers.includes('TEST découverte'));
- assert.ok(fs.readFileSync(path.join(temp,'populated/agenda/index.html'),'utf8').includes('calendar.google.com/calendar/embed'));
+ const agenda=fs.readFileSync(path.join(temp,'populated/agenda/index.html'),'utf8');
+ assert.ok(agenda.includes('calendar.google.com/calendar/embed'));
+ assert.ok(agenda.includes('second%40group.calendar.google.com'));
+ assert.equal((agenda.match(/Ouvrir le calendrier/g)||[]).length,2);
+ assert.ok(agenda.includes('data-native-cursor'));
+ for (const route of ['agenda','contact']) {
+  const html=fs.readFileSync(path.join(temp,`populated/${route}/index.html`),'utf8');
+  assert.ok(!html.includes('class="page-hero'));
+  assert.equal((html.match(/<h1[ >]/g)||[]).length,1);
+ }
+ assert.ok(aventuriers.includes('Gratuit et sur inscription'));
+ const photos=fs.readFileSync(path.join(temp,'populated/photos/index.html'),'utf8');
+ assert.equal((photos.match(/data-deferred-src=/g)||[]).length,5);
+ for (const tag of photos.match(/<img[^>]*data-deferred-src[^>]*>/g)||[]) assert.ok(!/\ssrc=/.test(tag));
+ assert.ok(photos.includes('<noscript>'));
+ assert.ok(!/<img[^>]*\ssrc=[^>]*data-photo-lightbox-image/.test(photos));
  mode='empty';const empty=await run(['build','--outDir',path.join(temp,'empty')],env);assert.equal(empty.code,0,empty.output);
  assert.ok(fs.readFileSync(path.join(temp,'empty/index.html'),'utf8').includes('Aucun événement'));
  const noSession=fs.readFileSync(path.join(temp,'empty/jeunesse/aventuriers/index.html'),'utf8');

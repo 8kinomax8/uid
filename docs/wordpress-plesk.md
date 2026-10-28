@@ -144,7 +144,7 @@ Vérifier l’exécution réelle et les éventuelles protections HTTP de DEV. Ap
 | Événement | titre et image mise en avant natifs ; `description`, `date_heure` (`Y-m-d H:i:s`, Europe/Zurich), `lieu`, `lien_externe` facultatif |
 | Galerie | `meta.uid_gallery_ids`, IDs ordonnés via le sélecteur natif de médias |
 | Session | `session_active`, `session_affiche`, `session_date`, `session_heure_debut`, `session_heure_fin`, `session_inscription_url`, `session_description` facultative |
-| Agenda | `google_calendar_id` : identifiant du calendrier Google public |
+| Agenda | `google_calendar_id` : identifiants des calendriers Google publics, un par ligne (zone de texte sans formatage ; un identifiant unique reste compatible) |
 
 Le groupe ACF est chargé par l’extension depuis `acf-fields.json` ; ne pas l’importer une seconde fois. `wordpress/cpt-ui.json` reste disponible pour une installation vierge, sans écraser une configuration existante. Les sessions désactivées ne produisent aucun bloc. Les textes fixes restent dans Astro. Tous les événements à venir sont affichés, triés selon leur date suisse, sans données fictives de secours.
 
@@ -241,3 +241,12 @@ php wordpress/tests/deployment-test.php
 Les tests PHP simulent les hooks et l’API GitHub ; ils vérifient la signature, le refus des replays, les retries et l’acquittement des snapshots. Ils ne remplacent pas une recette avec WordPress/ACF réels : créer/modifier/dépublier/supprimer un événement, remplacer une image, désactiver chaque session, enregistrer pendant un build, provoquer une panne API, puis vérifier le rollback. Confirmer que WordPress DEV et les fichiers non gérés sont conservés et que la production est inchangée.
 
 Références : [déclenchement workflow GitHub](https://docs.github.com/en/rest/actions/workflows), [concurrence Actions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), [WP-Cron via tâche système](https://developer.wordpress.org/plugins/cron/hooking-wp-cron-into-the-system-task-scheduler/).
+
+
+### Mise à jour interface et calendriers multiples
+
+Transférer sur WordPress **DEV**, dans le dossier existant `wordpress/wp-content/plugins/uid-headless/`, les fichiers `uid-headless.php` et `acf-fields.json` de cette version. Le plugin charge les groupes ACF locaux : aucune nouvelle extension, constante ni page n’est nécessaire. Le nom et la clé du champ agenda restent identiques ; l’identifiant enregistré est conservé. Si vous maintenez aussi un export importé dans ACF, actualisez-le avec ce JSON pour garder la même définition (zone de texte, retours à la ligne sans formatage, exposition REST active).
+
+Dans la fiche Agenda configurée par `UID_CALENDAR_PAGE_ID`, saisir un identifiant Google par ligne. Tous les calendriers doivent être publics. Astro les regroupe dans une seule intégration en français, fuseau Europe/Zurich, avec un lien Google externe pour chacun. Les doublons sont ignorés ; une ligne invalide bloque la publication.
+
+Les corrections de menu, curseur, sessions découverte, en-têtes pratiques et chargement différé des photos font partie du build Astro. Aucune modification des scripts Bash, des permissions Plesk, des chemins SSH ou des secrets n’est nécessaire. Après transfert du plugin et configuration des calendriers, lancer d’abord le workflow en mode `validate`, puis un déploiement DEV manuel après validation. Aucun transfert ni déploiement n’est réalisé par la modification du code seule.

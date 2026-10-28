@@ -8,7 +8,7 @@ const block = session ? {
  title: 'Session découverte',
  kicker: group === 'lutins' ? 'Avant-goût' : 'Essayer avant de commencer',
  body: [session.date, 'Au local UID, Rue du Temple 31 à Delémont.', ...(session.description ? [session.description] : [])],
- points: [group === 'lutins' ? 'Pour les enfants de 3 à 6 ans' : 'Pour les enfants de 7 à 10 ans'],
+ points: [group === 'lutins' ? 'Pour les enfants de 3 à 6 ans' : 'Pour les enfants de 7 à 10 ans', 'Gratuit et sur inscription'],
  cta: {label:'Inscription à la session', href:session.href, external:true},
 } : null;
 ---

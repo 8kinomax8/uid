@@ -49,11 +49,17 @@ test('independent disabled/active discovery sessions with ACF raw Ymd dates',asy
  const invalid=createWordPressClient(config,mock(()=>reply({acf:{...acf,session_heure_fin:'08:00:00'}})));
  await assert.rejects(()=>invalid.getDiscoverySession('lutins'),/fin/);
 });
-test('calendar empty/configured/invalid',async()=>{
- assert.equal(await createWordPressClient(config,mock(()=>reply({acf:{google_calendar_id:''}}))).getCalendarConfig(),null);
- const calendar=await createWordPressClient(config,mock(()=>reply({acf:{google_calendar_id:'uid@group.calendar.google.com'}}))).getCalendarConfig();
- assert.equal(new URL(calendar!.embedUrl).searchParams.get('ctz'),'Europe/Zurich');
- await assert.rejects(()=>createWordPressClient(config,mock(()=>reply({acf:{google_calendar_id:'<iframe>'}}))).getCalendarConfig());
+test('calendar: legacy ID, multiple IDs, deduplication, empty and invalid contracts',async()=>{
+ const get = (value:unknown) => createWordPressClient(config,mock(()=>reply({acf:{google_calendar_id:value}}))).getCalendarConfig();
+ for (const value of ['',false,null,' \r\n ']) assert.equal(await get(value),null);
+ const single=await get('uid@group.calendar.google.com');
+ assert.equal(single!.calendars.length,1);
+ const calendar=await get(' uid@group.calendar.google.com\r\n\r\nen.ch#holiday@group.v.calendar.google.com\nuid@group.calendar.google.com ');
+ const params=new URL(calendar!.embedUrl).searchParams;
+ assert.equal(params.get('ctz'),'Europe/Zurich'); assert.equal(params.get('hl'),'fr');
+ assert.deepEqual(params.getAll('src'),['uid@group.calendar.google.com','en.ch#holiday@group.v.calendar.google.com']);
+ assert.deepEqual(calendar!.calendars.map(c=>new URL(c.externalUrl).searchParams.get('cid')),params.getAll('src'));
+ for (const value of ['<iframe>','https://example.com/a@b','uid@group.calendar.google.com&src=evil@b','a@b c@d','a@b@c',['a@b'],true]) await assert.rejects(()=>get(value));
 });
 
 test('DEV refuses production API, redirects and production media',async()=>{

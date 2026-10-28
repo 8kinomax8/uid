@@ -88,35 +88,12 @@ const revealElement = (target: HTMLElement) => {
 };
 
 const initPageArrival = () => {
-	const leadElements = document.querySelectorAll<HTMLElement>(".home-hero > h1, .home-hero__content, .page-hero__content");
-	const heroMedia = document.querySelector<HTMLElement>(".home-hero__media img, .page-hero__media img");
-
 	gsap.from("[data-header]", {
 		y: -14,
 		autoAlpha: 0,
 		duration: 0.42,
 		ease: "power3.out",
 		delay: 0.08,
-		clearProps: clearRevealProps,
-	});
-
-	if (heroMedia) {
-		gsap.fromTo(
-			heroMedia,
-			{ scale: 1.045, autoAlpha: 0.86 },
-			{ scale: 1, autoAlpha: 1, duration: 0.82, ease: "power3.out", clearProps: "transform,opacity,visibility" },
-		);
-	}
-
-	if (!leadElements.length) return;
-
-	gsap.from(leadElements, {
-		y: 24,
-		autoAlpha: 0,
-		duration: 0.62,
-		stagger: 0.08,
-		ease: "power3.out",
-		delay: 0.12,
 		clearProps: clearRevealProps,
 	});
 };

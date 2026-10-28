@@ -5,7 +5,7 @@ export type EventItem = {
  image: string; imageAlt: string; imageOrientation: 'portrait' | 'landscape'; href?: string; photos: Media[];
 };
 export type DiscoverySession = { date: string; startsAt: string; endsAt: string; description: string; href: string; poster: Media };
-export type CalendarConfig = { embedUrl: string; externalUrl: string };
+export type CalendarConfig = { embedUrl: string; calendars: { id: string; externalUrl: string }[] };
 export type CMSConfig = { base: string; lutinsId: string; aventuriersId: string; calendarId: string; development?: boolean };
 type RecordValue = Record<string, any>;
 const zone = 'Europe/Zurich';
@@ -115,11 +115,14 @@ export function createWordPressClient(config: CMSConfig, fetcher: typeof fetch =
   },
   async getCalendarConfig(): Promise<CalendarConfig | null> {
    const acf = object((await page(config.calendarId)).acf);
-   if (!acf.google_calendar_id) return null;
-   const id = text(acf.google_calendar_id,true);
-   if (!/^[^\s<>]+@[^\s<>]+$/.test(id)) throw new Error('Identifiant Google Calendar invalide');
-   const params = new URLSearchParams({src:id,ctz:zone,hl:'fr'});
-   return {embedUrl:`https://calendar.google.com/calendar/embed?${params}`, externalUrl:`https://calendar.google.com/calendar/u/0/r?cid=${encodeURIComponent(id)}`};
+   const raw = acf.google_calendar_id;
+   if (raw === undefined || raw === null || raw === false || raw === '') return null;
+   const ids = [...new Set(text(raw).split(/\r\n|\r|\n/).map(id => id.trim()).filter(Boolean))];
+   if (!ids.length) return null;
+   if (ids.some(id => !/^[A-Za-z0-9._%+~#-]+@[A-Za-z0-9.-]+$/.test(id))) throw new Error('Identifiant Google Calendar invalide');
+   const params = new URLSearchParams({ctz:zone,hl:'fr'});
+   ids.forEach(id => params.append('src', id));
+   return {embedUrl:`https://calendar.google.com/calendar/embed?${params}`, calendars:ids.map(id => ({id, externalUrl:`https://calendar.google.com/calendar/u/0/r?cid=${encodeURIComponent(id)}`}))};
   }
  };
 }

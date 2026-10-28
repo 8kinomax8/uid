@@ -2,6 +2,7 @@
 // Contract tests for the outbox, with WordPress HTTP/hooks stubbed. No external calls.
 define('ABSPATH', __DIR__);
 define('DAY_IN_SECONDS', 86400);
+define('UID_CALENDAR_PAGE_ID', 13);
 $fixture = sys_get_temp_dir() . '/uid-php-' . bin2hex(random_bytes(8));
 mkdir($fixture, 0700, true); mkdir($fixture . '/state'); mkdir($fixture . '/web');
 define('UID_STATE_DIR', $fixture . '/state');
@@ -53,6 +54,12 @@ class Request {
     function get_json_params() { return json_decode($this->body,true); }
 }
 require __DIR__ . '/../uid-headless/uid-headless.php';
+foreach (array('', " \n ", 'uid@group.calendar.google.com', "uid@group.calendar.google.com\r\nen.ch#holiday@group.v.calendar.google.com") as $value) {
+    check(uid_validation_error('page', 13, '', 0, array('google_calendar_id' => $value)) === '', 'valid calendar ID lines accepted');
+}
+foreach (array('<iframe>', 'https://example.com/a@b', 'a@b&src=c@d', 'a@b c@d', 'a@b@c', array('a@b'), true) as $value) {
+    check(uid_validation_error('page', 13, '', 0, array('google_calendar_id' => $value)) !== '', 'invalid calendar payload refused');
+}
 $vector=json_decode(file_get_contents(__DIR__ . '/hmac-vector.json'),true);
 check(hash_hmac('sha256', $vector['timestamp']."\n".$vector['nonce']."\n".$vector['body'], $vector['key']) === $vector['signature'], 'shared Python/PHP HMAC vector matches');
 function request($operation,$token=null,$run='123') {

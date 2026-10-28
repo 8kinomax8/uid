@@ -4,14 +4,16 @@ type Props = {
 	kicker?: string;
 	text?: string;
 	image?: string | null;
+	deferImage?: boolean;
 };
 
-const { title, kicker, text, image = "/images/Photo_ensemble.jpg" } = Astro.props;
+const { title, kicker, text, image = "/images/Photo_ensemble.jpg", deferImage = false } = Astro.props;
 ---
 
 <section class:list={["page-hero", { "page-hero--text-only": !image }]}>
 	{image && <div class="page-hero__media">
-		<img src={image} alt="" width="1800" height="1012" decoding="async" />
+		<img src={deferImage ? undefined : image} data-deferred-src={deferImage ? image : undefined} fetchpriority={deferImage ? "low" : undefined} alt="" width="1800" height="1012" decoding="async" />
+		{deferImage && <noscript><img src={image} alt="" width="1800" height="1012" loading="lazy" decoding="async" /></noscript>}
 	</div>}
 	<div class="page-hero__content" data-reveal>
 		<h1>{title}</h1>

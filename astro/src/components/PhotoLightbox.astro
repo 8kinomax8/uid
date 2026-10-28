@@ -1,10 +1,9 @@
 ---
 type Props = {
-	initialImage: string;
 	navigation?: boolean;
 };
 
-const { initialImage, navigation = true } = Astro.props;
+const { navigation = true } = Astro.props;
 ---
 
 <dialog class="photo-lightbox" data-photo-lightbox data-photo-navigation={navigation ? "true" : "false"} aria-label="Photo en grand format">
@@ -17,7 +16,7 @@ const { initialImage, navigation = true } = Astro.props;
 		<span aria-hidden="true"></span>
 		<span aria-hidden="true"></span>
 	</button>
-	<img src={initialImage} alt="" data-photo-lightbox-image />
+	<img alt="" data-photo-lightbox-image decoding="async" />
 	{navigation && <button class="photo-lightbox__nav photo-lightbox__nav--next" type="button" data-photo-next>
 		<span class="sr-only">Photo suivante</span>
 		<span aria-hidden="true"> →</span>

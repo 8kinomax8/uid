@@ -15,6 +15,7 @@ const setMenuState = (isOpen: boolean, menuToggle: HTMLButtonElement, menuPanel:
 	const shouldAnimate = animate && !reduceMotion;
 	const menuItems = getMenuItems(menuPanel);
 
+	const wasVisible = menuPanel.classList.contains("is-open");
 	gsap.killTweensOf([menuPanel, ...menuItems]);
 	menuToggle.setAttribute("aria-expanded", String(isOpen));
 	menuPanel.setAttribute("aria-hidden", String(!isOpen));
@@ -34,18 +35,17 @@ const setMenuState = (isOpen: boolean, menuToggle: HTMLButtonElement, menuPanel:
 			return;
 		}
 
-		gsap.fromTo(menuPanel, { y: -14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.24, ease: "power3.out" });
-		gsap.fromTo(
-			menuItems,
-			{ y: 18, autoAlpha: 0 },
-			{ y: 0, autoAlpha: 1, duration: 0.28, ease: "power3.out", stagger: 0.04, delay: 0.04 },
-		);
+		if (!wasVisible) {
+			gsap.set(menuPanel, { y: -20, autoAlpha: 0 });
+			gsap.set(menuItems, { y: 16, autoAlpha: 0 });
+		}
+		gsap.to(menuPanel, { y: 0, autoAlpha: 1, duration: 0.38, ease: "power2.out" });
+		gsap.to(menuItems, { y: 0, autoAlpha: 1, duration: 0.42, ease: "power2.out", stagger: 0.035, delay: 0.06 });
 		return;
 	}
 
-	menuPanel.classList.remove("is-open");
-
 	const finishClose = () => {
+		menuPanel.classList.remove("is-open");
 		document.documentElement.style.overflow = "";
 		(window as WindowWithLenis).uidLenis?.start();
 		gsap.set(menuPanel, { clearProps: "all" });
@@ -58,8 +58,8 @@ const setMenuState = (isOpen: boolean, menuToggle: HTMLButtonElement, menuPanel:
 		return;
 	}
 
-	gsap.to(menuItems, { y: -6, autoAlpha: 0, duration: 0.12, ease: "power2.out", stagger: 0.015 });
-	gsap.to(menuPanel, { y: -10, autoAlpha: 0, duration: 0.16, ease: "power2.out", onComplete: finishClose });
+	gsap.to(menuItems, { y: -6, autoAlpha: 0, duration: 0.18, ease: "power2.out", stagger: 0.015 });
+	gsap.to(menuPanel, { y: -10, autoAlpha: 0, duration: 0.24, ease: "power2.out", onComplete: finishClose });
 };
 
 export const initMenu = () => {

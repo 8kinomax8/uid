@@ -2,7 +2,7 @@
 /**
  * Plugin Name: UID Headless
  * Description: Contrats ACF, galerie et reconstruction GitHub Actions du site Astro UID.
- * Version: 1.1.0
+ * Version: 1.2.0
  */
 if (!defined('ABSPATH')) { exit; }
 
@@ -129,7 +129,13 @@ function uid_valid_local_date($value, $format) {
 function uid_validation_error($type, $id, $title, $thumbnail, $acf = null) {
     if (defined('UID_CALENDAR_PAGE_ID') && (int) $id === (int) UID_CALENDAR_PAGE_ID) {
         $calendar = uid_submitted_field('google_calendar_id', $id, $acf);
-        return $calendar && !preg_match('/^[^\s<>]+@[^\s<>]+$/', $calendar) ? 'Utilisez l’identifiant Google Calendar, pas une URL ou un code iframe.' : '';
+        if ($calendar === false || $calendar === null || $calendar === '') { return ''; }
+        if (!is_string($calendar)) { return 'Utilisez un identifiant Google Calendar par ligne.'; }
+        foreach (preg_split('/\r\n|\r|\n/', $calendar) as $line) {
+            $line = trim($line);
+            if ($line !== '' && !preg_match('/^[A-Za-z0-9._%+~#-]+@[A-Za-z0-9.-]+$/D', $line)) { return 'Utilisez un identifiant Google Calendar par ligne, pas une URL ou un code iframe.'; }
+        }
+        return '';
     }
     if ($type === 'evenements') {
         foreach (array('description', 'date_heure', 'lieu') as $name) { if (!trim((string) uid_submitted_field($name, $id, $acf))) { return 'Complétez la description, la date et le lieu.'; } }

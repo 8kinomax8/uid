@@ -185,8 +185,11 @@
       {
         "key": "field_uid_google_calendar_id",
         "name": "google_calendar_id",
-        "label": "Identifiant du calendrier public Google",
-        "type": "text",
+        "label": "Identifiants des calendriers publics Google",
+        "instructions": "Un identifiant par ligne. Chaque calendrier doit être public. Ne collez pas une URL ni un code iframe.",
+        "type": "textarea",
+        "rows": 4,
+        "new_lines": "",
         "required": 0
       }
     ],

@@ -20,6 +20,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).toString()
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		{Astro.site?.hostname === "dev.fanfareuid.ch" && <meta name="robots" content="noindex, nofollow" />}
+		<noscript><style is:inline>img[data-deferred-src] { display: none; }</style></noscript>
 		<meta name="generator" content={Astro.generator} />
 		<title>{pageTitle}</title>
 		<meta name="description" content={description} />
