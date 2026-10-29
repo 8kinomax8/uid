@@ -126,7 +126,7 @@ export const pages = {
 		],
 		points: [
 			"Répétition — vendredi, 18h15 à 19h30",
-			"Contact — cadets@fanfareuid.ch (Union d'Avenir et Aventuriers)",
+			"Contact — cadets@fanfareuid.ch",
 		],
 	},
 	aventuriers: {
@@ -136,7 +136,7 @@ export const pages = {
 			"Les Aventuriers rassemblent les jeunes de 7 ans et plus qui commencent leur formation avec l’instrument de leur choix.",
 			"En plus de leurs cours individuels avec un professeur, ils se retrouvent chaque vendredi pour une heure de répétition en groupe avec leur directeur Biagio Musumeci.",
 		],
-		points: ["Répétition en groupe — chaque vendredi", "Contact — cadets@fanfareuid.ch)"],
+		points: ["Répétition en groupe — chaque vendredi", "Contact — cadets@fanfareuid.ch / 076 512 42 12 (Florence Harris)"],
 		cta: {
 			label: "Inscription aux Aventuriers",
 			href: "https://docs.google.com/forms/d/e/1FAIpQLSediSYKFzgUQ0VNV6_AAhGTa3fydTvuevxOgsnC76kQs4voAA/viewform?usp=header",

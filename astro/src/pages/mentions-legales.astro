@@ -1,16 +1,10 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import PageHero from "../components/PageHero.astro";
 import { site } from "../data/site";
 ---
 
 <BaseLayout title="Mentions légales" description="Mentions légales de l'Union Instrumentale Delémont.">
-	<PageHero
-		title="Mentions légales"
-		kicker="Informations"
-		text="Les informations utiles concernant l'éditeur du site et les contenus publiés."
-		image={null}
-	/>
+	<div class="page-practical practical-heading"><h1 class="practical-title">Mentions légales</h1></div>
 	<section class="legal-page" aria-labelledby="legal-title">
 		<div class="section-heading section-heading--compact" data-reveal>
 			<h2 id="legal-title">{site.name}</h2>

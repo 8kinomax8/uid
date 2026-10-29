@@ -45,14 +45,22 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
  const agenda=fs.readFileSync(path.join(temp,'populated/agenda/index.html'),'utf8');
  assert.ok(agenda.includes('calendar.google.com/calendar/embed'));
  assert.ok(agenda.includes('second%40group.calendar.google.com'));
- assert.equal((agenda.match(/Ouvrir le calendrier/g)||[]).length,2);
+ assert.ok(!agenda.includes('calendar-links'));
+ assert.ok(!agenda.includes('Ouvrir le calendrier'));
+ assert.ok(!agenda.includes('Ouvrir l’agenda'));
  assert.ok(agenda.includes('data-native-cursor'));
- for (const route of ['agenda','contact']) {
+ for (const route of ['agenda','contact','mentions-legales']) {
   const html=fs.readFileSync(path.join(temp,`populated/${route}/index.html`),'utf8');
   assert.ok(!html.includes('class="page-hero'));
   assert.equal((html.match(/<h1[ >]/g)||[]).length,1);
  }
  assert.ok(aventuriers.includes('Gratuit et sur inscription'));
+ assert.ok(!aventuriers.includes('youth-contact'));
+ const soutien=fs.readFileSync(path.join(temp,'populated/soutien/index.html'),'utf8');
+ assert.ok(soutien.indexOf('Recherche de soutiens financiers')<soutien.indexOf('<h2>La Partition'));
+ for (const content of ['2026 et 2028','Renaud Zbinden','caissier','mailto:uniformes@fanfareuid.ch','tel:+41798859265','bières artisanales','passeports gourmands','DossierPartenariat_UniformeUID2026_VF.pdf']) assert.ok(soutien.includes(content),content);
+ assert.ok(!soutien.includes('nouveaux costumes'));
+
  const photos=fs.readFileSync(path.join(temp,'populated/photos/index.html'),'utf8');
  assert.equal((photos.match(/data-deferred-src=/g)||[]).length,5);
  for (const tag of photos.match(/<img[^>]*data-deferred-src[^>]*>/g)||[]) assert.ok(!/\ssrc=/.test(tag));
@@ -61,7 +69,7 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
  mode='empty';const empty=await run(['build','--outDir',path.join(temp,'empty')],env);assert.equal(empty.code,0,empty.output);
  assert.ok(fs.readFileSync(path.join(temp,'empty/index.html'),'utf8').includes('Aucun événement'));
  const noSession=fs.readFileSync(path.join(temp,'empty/jeunesse/aventuriers/index.html'),'utf8');
- assert.ok(!noSession.includes('content-flow--poster'));assert.ok(noSession.includes('Florence Harris'));
+ assert.ok(!noSession.includes('content-flow--poster'));assert.ok(!noSession.includes('youth-contact'));assert.ok(!noSession.includes('Responsable formation'));
  assert.ok(fs.readFileSync(path.join(temp,'empty/agenda/index.html'),'utf8').includes('L’agenda sera disponible'));
  mode='error';const failure=await run(['build','--outDir',path.join(temp,'failed')],env);assert.notEqual(failure.code,0);assert.ok(failure.output.includes('403'));
  const unconfigured=await run(['build','--outDir',path.join(temp,'unconfigured')],{...env,WORDPRESS_API_BASE:''});assert.notEqual(unconfigured.code,0);

@@ -10,16 +10,11 @@ const calendar = await getCalendarConfig();
    <p>Les dates publiées par l'UID se rassemblent ici pour préparer une sortie, une visite ou une première rencontre avec la société.</p>
   </div>
   {calendar ? <>
-   <div class="calendar-links">{calendar.calendars.map((item, index) =>
-    <a class="text-link" href={item.externalUrl} target="_blank" rel="noreferrer">{calendar.calendars.length === 1 ? 'Ouvrir l’agenda dans Google Calendar' : `Ouvrir le calendrier ${index + 1} dans Google Calendar`} ↗</a>
-   )}</div>
    <iframe class="google-calendar" data-native-cursor data-lenis-prevent src={calendar.embedUrl} title="Agenda public de l’Union Instrumentale Delémont" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   </> : <p>L’agenda sera disponible prochainement.</p>}
  </section>
 </BaseLayout>
 <style>
- .calendar-links { display:flex; flex-wrap:wrap; gap:1rem 2rem; }
  .google-calendar { display:block; width:100%; min-width:0; height:700px; border:0; margin-top:1.5rem; background:white; }
- @media (max-width:600px) { .calendar-links { display:flex; flex-wrap:wrap; gap:1rem 2rem; }
- .google-calendar { height:600px; } }
+ @media (max-width:600px) { .google-calendar { height:600px; } }
 </style>
