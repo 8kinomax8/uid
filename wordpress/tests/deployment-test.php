@@ -21,6 +21,8 @@ function add_action(...$args) {}
 function add_filter(...$args) {}
 function register_activation_hook(...$args) {}
 function register_deactivation_hook(...$args) {}
+function get_post_meta($id, $key, $single = false) { return ''; }
+function wp_attachment_is_image($id) { return $id === 5; }
 function wp_json_encode($value) { return json_encode($value); }
 function wp_generate_uuid4() { $hex = bin2hex(random_bytes(16)); return substr($hex,0,8).'-'.substr($hex,8,4).'-'.substr($hex,12,4).'-'.substr($hex,16,4).'-'.substr($hex,20); }
 $GLOBALS['site'] = 'https://dev.fanfareuid.ch/wordpress';
@@ -60,6 +62,15 @@ foreach (array('', " \n ", 'uid@group.calendar.google.com', "uid@group.calendar.
 foreach (array('<iframe>', 'https://example.com/a@b', 'a@b&src=c@d', 'a@b c@d', 'a@b@c', array('a@b'), true) as $value) {
     check(uid_validation_error('page', 13, '', 0, array('google_calendar_id' => $value)) !== '', 'invalid calendar payload refused');
 }
+$feature = array('home_feature_mode' => 'custom', 'home_feature_title' => 'Projet UID', 'home_feature_summary' => 'Notre projet.', 'home_feature_link_label' => 'Découvrir', 'home_feature_url' => 'https://dev.fanfareuid.ch/soutien/', 'home_feature_image' => 5);
+check(uid_home_feature_error(13, $feature) === '', 'complete custom feature accepted');
+foreach (array('home_feature_title', 'home_feature_summary', 'home_feature_link_label', 'home_feature_url') as $name) {
+    check(uid_home_feature_error(13, array_merge($feature, array($name => ''))) !== '', 'custom feature requires ' . $name);
+}
+check(uid_home_feature_error(13, array_merge($feature, array('home_feature_url' => 'javascript:alert(1)'))) !== '', 'unsafe feature URL refused');
+check(uid_home_feature_error(13, array_merge($feature, array('home_feature_image' => 9))) !== '', 'non-image feature media refused');
+check(uid_home_feature_error(13, array('home_feature_mode' => 'hidden')) === '', 'hidden feature needs no fields');
+check(uid_home_feature_error(13, array('home_feature_mode' => 'uniforms')) === '', 'confirmed uniforms campaign needs no custom fields');
 $vector=json_decode(file_get_contents(__DIR__ . '/hmac-vector.json'),true);
 check(hash_hmac('sha256', $vector['timestamp']."\n".$vector['nonce']."\n".$vector['body'], $vector['key']) === $vector['signature'], 'shared Python/PHP HMAC vector matches');
 function request($operation,$token=null,$run='123') {

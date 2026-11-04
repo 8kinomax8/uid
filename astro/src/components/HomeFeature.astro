@@ -1,0 +1,13 @@
+---
+import type { HomeFeature } from '../lib/wordpress';
+type Props = { feature: HomeFeature };
+const {feature} = Astro.props;
+---
+<section class:list={['home-feature', {'home-feature--image': feature.image}]} aria-labelledby="home-feature-title" data-reveal>
+ <h2 id="home-feature-title">{feature.title}</h2>
+ <div class="home-feature__content">
+  <p>{feature.summary}</p>
+  <a class="button-link" href={feature.href}>{feature.linkLabel}</a>
+ </div>
+ {feature.image && <img src={feature.image.src} alt={feature.image.alt} width={feature.image.width} height={feature.image.height} loading="lazy" decoding="async" />}
+</section>

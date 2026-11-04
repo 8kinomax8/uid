@@ -5,6 +5,13 @@ export type EventItem = {
  image: string; imageAlt: string; imageOrientation: 'portrait' | 'landscape'; href?: string; photos: Media[];
 };
 export type DiscoverySession = { date: string; startsAt: string; endsAt: string; description: string; href: string; poster: Media };
+export type HomeFeature = { title: string; summary: string; href: string; linkLabel: string; image?: Media };
+// Confirmed editorial campaign, used until the existing configuration page is updated.
+export const uniformFeature: HomeFeature = {
+ title: 'De nouveaux uniformes',
+ summary: 'Entre 2026 et 2028, aidez l’Union Instrumentale Delémont à financer ses nouveaux uniformes. Entreprises et particuliers, découvrez comment participer.',
+ href: '/soutien/', linkLabel: 'Soutenir les nouveaux uniformes',
+};
 export type CalendarConfig = { embedUrl: string; calendars: { id: string; externalUrl: string }[] };
 export type CMSConfig = { base: string; lutinsId: string; aventuriersId: string; calendarId: string; development?: boolean };
 type RecordValue = Record<string, any>;
@@ -41,6 +48,7 @@ export function createWordPressClient(config: CMSConfig, fetcher: typeof fetch =
  const base = safeURL(config.base).replace(/\/$/, '') + '/';
  if (!new URL(base).pathname.endsWith('/wp-json/wp/v2/')) throw new Error('WORDPRESS_API_BASE doit se terminer par /wp-json/wp/v2');
  if (config.development && base !== 'https://dev.fanfareuid.ch/wordpress/wp-json/wp/v2/') throw new Error('Seule l’API WordPress DEV vérifiée est autorisée');
+ const pageCache = new Map<string, Promise<RecordValue>>();
  const mediaCache = new Map<number, Promise<Media>>();
  async function request(path: string) {
   let last: unknown;
@@ -74,7 +82,8 @@ export function createWordPressClient(config: CMSConfig, fetcher: typeof fetch =
  }
  async function page(id: string) {
   if (!/^[1-9]\d*$/.test(id)) throw new Error('Identifiant de page WordPress non configuré');
-  return object((await request(`pages/${id}`)).data);
+  if (!pageCache.has(id)) pageCache.set(id, request(`pages/${id}`).then(({data}) => object(data)));
+  return pageCache.get(id)!;
  }
  return {
   async getEvents(): Promise<EventItem[]> {
@@ -113,6 +122,17 @@ export function createWordPressClient(config: CMSConfig, fetcher: typeof fetch =
    const time = new Intl.DateTimeFormat('fr-CH', {timeZone:zone,timeStyle:'short'});
    return {date:`${dateLabel(start)} – ${time.format(end)}`, startsAt:start.toISOString(), endsAt:end.toISOString(), description:acf.session_description ? text(acf.session_description) : '', href:safeURL(acf.session_inscription_url), poster:await media(acf.session_affiche)};
   },
+  async getHomeFeature(): Promise<HomeFeature | null> {
+   const acf = object((await page(config.calendarId)).acf);
+   const mode = acf.home_feature_mode;
+   if (mode === undefined || mode === false || mode === '' || mode === null || mode === 'uniforms') return {...uniformFeature};
+   if (mode === 'hidden') return null;
+   if (mode !== 'custom') throw new Error('Mode d’actualité accueil invalide');
+   const title = text(acf.home_feature_title, true), summary = text(acf.home_feature_summary, true);
+   const linkLabel = text(acf.home_feature_link_label, true);
+   if (Array.from(title).length > 120 || Array.from(summary).length > 600 || Array.from(linkLabel).length > 80) throw new Error('Actualité accueil trop longue');
+   return { title, summary, linkLabel, href:safeURL(acf.home_feature_url), image:acf.home_feature_image ? await media(acf.home_feature_image) : undefined };
+  },
   async getCalendarConfig(): Promise<CalendarConfig | null> {
    const acf = object((await page(config.calendarId)).acf);
    const raw = acf.google_calendar_id;
@@ -133,3 +153,5 @@ function configuredClient() {
 export const getEvents = () => configuredClient().getEvents();
 export const getDiscoverySession = (group: 'lutins'|'aventuriers') => configuredClient().getDiscoverySession(group);
 export const getCalendarConfig = () => configuredClient().getCalendarConfig();
+
+export const getHomeFeature = () => configuredClient().getHomeFeature();

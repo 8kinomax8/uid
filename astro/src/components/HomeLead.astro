@@ -1,0 +1,28 @@
+---
+import type { EventItem, HomeFeature } from '../lib/wordpress';
+type Props = { event?: EventItem; feature: HomeFeature | null };
+const { event, feature } = Astro.props;
+const title = event?.title ?? feature?.title ?? 'La musique se partage';
+const summary = event?.summary ?? feature?.summary ?? 'Découvrez les formations jeunesse de l’Union Instrumentale Delémont et trouvez votre place dans la musique.';
+const image = event?.photos[0] ?? feature?.image;
+const href = event?.href ?? (!event ? feature?.href ?? '/jeunesse/' : undefined);
+const linkLabel = event ? 'En savoir plus' : feature?.linkLabel ?? 'Découvrir les formations';
+const gallery = event ? { 'data-photo-gallery': JSON.stringify(event.photos), 'data-photo-open': true } : {};
+---
+<section class:list={['home-lead', { 'home-lead--portrait': image && image.height > image.width }]} aria-labelledby="home-title" data-home-lead={event ? 'event' : feature ? 'feature' : 'youth'}>
+ <div class="home-lead__content">
+  <h1 id="home-title" class:list={{'home-lead__title--long': title.length > 55}}>{title}</h1>
+  <p class="home-lead__identity">Union Instrumentale Delémont</p>
+  {event && <p class="home-lead__when"><time datetime={event.startsAt}>{event.date}</time><span>{event.location}</span></p>}
+  <p class="home-lead__summary">{summary}</p>
+  <div class="hero-actions">
+   {href ? <a class="button-link" href={href}>{linkLabel}</a> : <button class="button-link" type="button" {...gallery}>Voir l’affiche</button>}
+   {event && <a class="ghost-link" href="/agenda/">Tout l’agenda</a>}
+  </div>
+ </div>
+ {event ? <button class="home-lead__media" type="button" {...gallery} aria-label={`Agrandir l’affiche : ${event.title}`}>
+  <img src={event.image} alt={event.imageAlt} width={image?.width ?? 900} height={image?.height ?? 1200} fetchpriority="high" decoding="async" />
+ </button> : <figure class="home-lead__media">
+  <img src={image?.src ?? '/images/Photo_ensemble.jpg'} alt={image?.alt ?? 'Les musiciens de l’Union Instrumentale Delémont réunis en ensemble'} width={image?.width ?? 1800} height={image?.height ?? 1200} fetchpriority="high" decoding="async" />
+ </figure>}
+</section>

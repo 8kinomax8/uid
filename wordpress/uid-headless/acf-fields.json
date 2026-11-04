@@ -180,7 +180,7 @@
   },
   {
     "key": "group_uid_calendar",
-    "title": "Agenda Google",
+    "title": "Agenda et accueil",
     "fields": [
       {
         "key": "field_uid_google_calendar_id",
@@ -191,6 +191,109 @@
         "rows": 4,
         "new_lines": "",
         "required": 0
+      },
+      {
+        "name": "home_feature_mode",
+        "label": "Actualité à la une de l’accueil",
+        "type": "select",
+        "choices": {
+          "uniforms": "Campagne des nouveaux uniformes",
+          "custom": "Actualité personnalisée",
+          "hidden": "Masquer l’actualité"
+        },
+        "default_value": "uniforms",
+        "return_format": "value",
+        "instructions": "Le prochain événement ouvre l’accueil. Sans événement, cette actualité prend sa place.",
+        "key": "field_uid_home_feature_mode",
+        "required": 0
+      },
+      {
+        "name": "home_feature_title",
+        "label": "Titre de l’actualité",
+        "type": "text",
+        "maxlength": 120,
+        "key": "field_uid_home_feature_title",
+        "required": 0,
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_home_feature_mode",
+              "operator": "==",
+              "value": "custom"
+            }
+          ]
+        ]
+      },
+      {
+        "name": "home_feature_summary",
+        "label": "Description de l’actualité",
+        "type": "textarea",
+        "maxlength": 600,
+        "rows": 4,
+        "new_lines": "",
+        "key": "field_uid_home_feature_summary",
+        "required": 0,
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_home_feature_mode",
+              "operator": "==",
+              "value": "custom"
+            }
+          ]
+        ]
+      },
+      {
+        "name": "home_feature_url",
+        "label": "Lien de l’actualité",
+        "type": "url",
+        "key": "field_uid_home_feature_url",
+        "required": 0,
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_home_feature_mode",
+              "operator": "==",
+              "value": "custom"
+            }
+          ]
+        ]
+      },
+      {
+        "name": "home_feature_link_label",
+        "label": "Texte du bouton",
+        "type": "text",
+        "maxlength": 80,
+        "key": "field_uid_home_feature_link_label",
+        "required": 0,
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_home_feature_mode",
+              "operator": "==",
+              "value": "custom"
+            }
+          ]
+        ]
+      },
+      {
+        "name": "home_feature_image",
+        "label": "Image de l’actualité (facultative)",
+        "type": "image",
+        "return_format": "id",
+        "preview_size": "medium",
+        "library": "all",
+        "key": "field_uid_home_feature_image",
+        "required": 0,
+        "conditional_logic": [
+          [
+            {
+              "field": "field_uid_home_feature_mode",
+              "operator": "==",
+              "value": "custom"
+            }
+          ]
+        ]
       }
     ],
     "location": [

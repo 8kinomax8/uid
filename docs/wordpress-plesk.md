@@ -250,3 +250,20 @@ Transférer sur WordPress **DEV**, dans le dossier existant `wordpress/wp-conten
 Dans la fiche Agenda configurée par `UID_CALENDAR_PAGE_ID`, saisir un identifiant Google par ligne. Tous les calendriers doivent être publics. Astro les regroupe dans une seule intégration en français, fuseau Europe/Zurich, sans liens d’ouverture externes, conformément au choix éditorial. Les doublons sont ignorés ; une ligne invalide bloque la publication.
 
 Les corrections de menu, curseur, sessions découverte, en-têtes pratiques et chargement différé des photos font partie du build Astro. Aucune modification des scripts Bash, des permissions Plesk, des chemins SSH ou des secrets n’est nécessaire. Après transfert du plugin et configuration des calendriers, lancer d’abord le workflow en mode `validate`, puis un déploiement DEV manuel après validation. Aucun transfert ni déploiement n’est réalisé par la modification du code seule.
+
+
+### Accueil vivant : prochain rendez-vous et actualité à la une
+
+L’accueil présente le premier événement à venir, déjà trié et filtré par date suisse. Cet événement n’est pas répété dans la liste des autres rendez-vous. Lorsqu’il expire à la fin de sa journée locale, le build quotidien met automatiquement le suivant en avant. Le fonctionnement reste entièrement statique, avec les données WordPress au build.
+
+L’actualité se règle **sur la fiche WordPress existante désignée par `UID_CALENDAR_PAGE_ID`**, dans le groupe ACF « Agenda et accueil ». Aucun nouvel ID, secret ou paramètre GitHub/Plesk n’est requis. Mettre à jour `uid-headless.php` et `acf-fields.json` dans le plugin DEV ; le groupe est chargé par le plugin. Si une copie du groupe est maintenue dans ACF, synchroniser sa définition.
+
+Trois modes sont proposés :
+
+- **Campagne des nouveaux uniformes** : campagne réelle validée pour 2026–2028, lien vers `/soutien/`. Ce mode est aussi le repli de compatibilité tant que les nouveaux champs ne sont pas enregistrés.
+- **Actualité personnalisée** : titre (120 caractères), description en texte simple (600 caractères), URL http/https, texte du bouton (80 caractères), image de la médiathèque facultative. Les quatre champs de texte/lien sont nécessaires ; une URL ou un média invalide est refusé. Les images DEV restent limitées au WordPress DEV.
+- **Masquer l’actualité** : aucun bloc éditorial n’est produit. Sans événement non plus, l’accueil présente les formations jeunesse avec un lien fonctionnel, sans inventer de rendez-vous.
+
+Avec un événement, l’actualité apparaît après les autres rendez-vous. Sans événement, elle prend la place principale et n’est pas répétée plus bas. Une image personnalisée conserve son format complet ; à défaut, l’ouverture éditoriale utilise la photo réelle de l’ensemble. L’histoire demeure sur `/harmonie/`.
+
+Les sauvegardes de cette fiche utilisent la file de reconstruction sécurisée existante. Pour préparer cette mise à jour sans publication automatique, garder `UID_GITHUB_DEPLOY_ENABLED` désactivé pendant la configuration et vérifier le workflow en mode `validate` avant toute publication DEV manuelle.

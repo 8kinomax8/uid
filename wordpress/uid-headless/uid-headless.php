@@ -2,7 +2,7 @@
 /**
  * Plugin Name: UID Headless
  * Description: Contrats ACF, galerie et reconstruction GitHub Actions du site Astro UID.
- * Version: 1.2.0
+ * Version: 1.3.0
  */
 if (!defined('ABSPATH')) { exit; }
 
@@ -126,8 +126,25 @@ function uid_valid_local_date($value, $format) {
     $date = DateTimeImmutable::createFromFormat('!' . $format, $value, new DateTimeZone('Europe/Zurich'));
     return $date && $date->format($format) === $value;
 }
+function uid_home_feature_error($id, $acf = null) {
+    $mode = uid_submitted_field('home_feature_mode', $id, $acf);
+    if ($mode === '' || $mode === null || $mode === false || $mode === 'uniforms' || $mode === 'hidden') { return ''; }
+    if ($mode !== 'custom') { return 'Choisissez un mode d’actualité accueil valide.'; }
+    foreach (array('home_feature_title' => 120, 'home_feature_summary' => 600, 'home_feature_link_label' => 80) as $name => $limit) {
+        $value = uid_submitted_field($name, $id, $acf);
+        if (!is_string($value) || trim($value) === '' || preg_match_all('/./us', trim($value)) > $limit) { return 'Complétez le titre, la description et le texte du bouton de l’actualité, en respectant les longueurs indiquées.'; }
+    }
+    $url = uid_submitted_field('home_feature_url', $id, $acf);
+    $parts = is_string($url) ? wp_parse_url($url) : false;
+    if (!$parts || empty($parts['host']) || !in_array(strtolower($parts['scheme'] ?? ''), array('http', 'https'), true) || isset($parts['user']) || isset($parts['pass']) || !filter_var($url, FILTER_VALIDATE_URL)) { return 'Le lien de l’actualité doit être une URL http ou https valide, sans identifiants.'; }
+    $image = uid_submitted_field('home_feature_image', $id, $acf);
+    if ($image !== false && $image !== null && $image !== '' && $image !== 0 && ((!is_int($image) && !is_string($image)) || !ctype_digit((string) $image) || !wp_attachment_is_image((int) $image))) { return 'Choisissez une image valide pour l’actualité.'; }
+    return '';
+}
 function uid_validation_error($type, $id, $title, $thumbnail, $acf = null) {
     if (defined('UID_CALENDAR_PAGE_ID') && (int) $id === (int) UID_CALENDAR_PAGE_ID) {
+        $feature_error = uid_home_feature_error($id, $acf);
+        if ($feature_error) { return $feature_error; }
         $calendar = uid_submitted_field('google_calendar_id', $id, $acf);
         if ($calendar === false || $calendar === null || $calendar === '') { return ''; }
         if (!is_string($calendar)) { return 'Utilisez un identifiant Google Calendar par ligne.'; }

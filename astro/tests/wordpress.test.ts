@@ -73,3 +73,23 @@ test('DEV refuses production API, redirects and production media',async()=>{
  await assert.rejects(()=>createWordPressClient(dev,fetcher,()=>new Date('2026-01-01')).getEvents(),/Média hors/);
  assert.ok(strictRedirect);
 });
+
+
+test('home feature: confirmed campaign, hidden and custom editorial content, media caching and errors', async () => {
+ const custom={home_feature_mode:'custom',home_feature_title:'Notre projet',home_feature_summary:'Une actualité.',home_feature_url:'https://cms.example/projet',home_feature_link_label:'Découvrir',home_feature_image:1};
+ let pageCalls=0, mediaCalls=0;
+ const client=createWordPressClient(config,mock(url=>{
+  if(url.pathname.includes('/media/')) {mediaCalls++;return reply(media(1));}
+  pageCalls++;return reply({acf:{...custom,google_calendar_id:''}});
+ }));
+ const feature=await client.getHomeFeature();
+ assert.equal(feature?.title,'Notre projet'); assert.equal(feature?.image?.id,1);
+ await client.getCalendarConfig();await client.getHomeFeature();
+ assert.equal(pageCalls,1);assert.equal(mediaCalls,1);
+ const get=(acf:unknown)=>createWordPressClient(config,mock(()=>reply({acf}))).getHomeFeature();
+ assert.equal((await get({}))?.href,'/soutien/');
+ assert.equal((await get({home_feature_mode:'uniforms'}))?.title,'De nouveaux uniformes');
+ assert.equal(await get({home_feature_mode:'hidden'}),null);
+ assert.equal((await get({...custom,home_feature_image:false}))?.image,undefined);
+ for(const acf of [{home_feature_mode:'bad'},{...custom,home_feature_title:''},{...custom,home_feature_summary:'a'.repeat(601)},{...custom,home_feature_url:'javascript:alert(1)'}]) await assert.rejects(()=>get(acf));
+});
