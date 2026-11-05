@@ -3,8 +3,8 @@ let activePhotoIndex = 0;
 export const initPhotoLightbox = () => {
 	const lightbox = document.querySelector<HTMLDialogElement>("[data-photo-lightbox]");
 	const image = document.querySelector<HTMLImageElement>("[data-photo-lightbox-image]");
-	const openButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-photo-open]"));
-	if (!lightbox || !image || openButtons.length === 0) return;
+	const openTriggers = Array.from(document.querySelectorAll<HTMLElement>("[data-photo-open]"));
+	if (!lightbox || !image || openTriggers.length === 0) return;
 
 	let activePhotos: {src: string; alt: string}[] = [];
 	const navigation = Array.from(lightbox.querySelectorAll<HTMLButtonElement>("[data-photo-prev], [data-photo-next]"));
@@ -41,13 +41,17 @@ export const initPhotoLightbox = () => {
 		if (lightbox.open) lightbox.close();
 	};
 
-	openButtons.forEach((button, index) => {
-		button.addEventListener("click", () => {
-			activePhotos = button.dataset.photoGallery
-				? JSON.parse(button.dataset.photoGallery)
-				: openButtons.map(item => ({src: item.dataset.photoSrc ?? "", alt: item.dataset.photoAlt ?? ""}));
+	openTriggers.forEach((trigger, index) => {
+		trigger.addEventListener("click", (event) => {
+			if (trigger instanceof HTMLAnchorElement) {
+				if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+				event.preventDefault();
+			}
+			activePhotos = trigger.dataset.photoGallery
+				? JSON.parse(trigger.dataset.photoGallery)
+				: openTriggers.map(item => ({src: item.dataset.photoSrc ?? "", alt: item.dataset.photoAlt ?? ""}));
 			navigation.forEach(control => { control.hidden = activePhotos.length < 2; });
-			showPhoto(button.dataset.photoGallery ? 0 : index);
+			showPhoto(trigger.dataset.photoGallery ? 0 : index);
 			lightbox.showModal();
 			document.documentElement.classList.add("has-photo-lightbox");
 			requestAnimationFrame(syncLightboxControls);

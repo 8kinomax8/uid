@@ -10,19 +10,19 @@ const linkLabel = event ? 'En savoir plus' : feature?.linkLabel ?? 'Découvrir l
 const gallery = event ? { 'data-photo-gallery': JSON.stringify(event.photos), 'data-photo-open': true } : {};
 ---
 <section class:list={['home-lead', { 'home-lead--portrait': image && image.height > image.width }]} aria-labelledby="home-title" data-home-lead={event ? 'event' : feature ? 'feature' : 'youth'}>
+ <h1 class="home-lead__identity" id="home-title">Union Instrumentale<br />Delémont</h1>
  <div class="home-lead__content">
-  <h1 id="home-title" class:list={{'home-lead__title--long': title.length > 55}}>{title}</h1>
-  <p class="home-lead__identity">Union Instrumentale Delémont</p>
+  <h2 class:list={['home-lead__title', {'home-lead__title--long': title.length > 55}]}>{title}</h2>
   {event && <p class="home-lead__when"><time datetime={event.startsAt}>{event.date}</time><span>{event.location}</span></p>}
   <p class="home-lead__summary">{summary}</p>
   <div class="hero-actions">
-   {href ? <a class="button-link" href={href}>{linkLabel}</a> : <button class="button-link" type="button" {...gallery}>Voir l’affiche</button>}
+   {href ? <a class="button-link" href={href}>{linkLabel}</a> : event && <a class="button-link" href={event.image} {...gallery}>Voir l’affiche</a>}
    {event && <a class="ghost-link" href="/agenda/">Tout l’agenda</a>}
   </div>
  </div>
- {event ? <button class="home-lead__media" type="button" {...gallery} aria-label={`Agrandir l’affiche : ${event.title}`}>
+ {event ? <a class="home-lead__media" href={event.image} {...gallery} aria-label={`Agrandir l’affiche : ${event.title}`}>
   <img src={event.image} alt={event.imageAlt} width={image?.width ?? 900} height={image?.height ?? 1200} fetchpriority="high" decoding="async" />
- </button> : <figure class="home-lead__media">
+ </a> : <figure class="home-lead__media">
   <img src={image?.src ?? '/images/Photo_ensemble.jpg'} alt={image?.alt ?? 'Les musiciens de l’Union Instrumentale Delémont réunis en ensemble'} width={image?.width ?? 1800} height={image?.height ?? 1200} fetchpriority="high" decoding="async" />
  </figure>}
 </section>

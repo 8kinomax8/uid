@@ -38,7 +38,8 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
  const home=fs.readFileSync(path.join(temp,'populated/index.html'),'utf8');
  assert.ok(home.indexOf('id="news"')<home.indexOf('class="formation-section"'));
  assert.ok(home.includes('data-home-lead="event"'));
- assert.equal((home.match(/<h1[^>]*>TEST concert<\/h1>/g)||[]).length,1);
+ assert.match(home, /<h1[^>]*>Union Instrumentale<br\s*\/?\s*>Delémont<\/h1>/);
+ assert.match(home, /<h2[^>]*>TEST concert<\/h2>/);
  assert.ok(!home.includes('<h3>TEST concert</h3>'));assert.ok(home.includes('<h3>TEST suivant</h3>'));
  assert.ok(!home.includes('Découvrir l’histoire'));assert.ok(!home.includes('Depuis 1878'));
  assert.ok(home.includes('home-feature-title'));
