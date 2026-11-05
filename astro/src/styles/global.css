@@ -1712,6 +1712,7 @@ img[data-deferred-src] { visibility: hidden; }
  line-height: 1.02;
 }
 .home-lead__content { overflow-wrap: anywhere; }
+.home-lead__label { margin: 0 0 16px; font-size: 1rem; }
 .home-lead__title { font-size: clamp(2rem, 3.8vw, 3.5rem); }
 .home-lead__title--long { font-size: clamp(1.625rem, 2.8vw, 2.75rem); }
 .home-lead__when { display: grid; gap: 4px; margin: 24px 0; font-size: clamp(1.125rem, 1.7vw, 1.5rem); line-height: 1.4; }

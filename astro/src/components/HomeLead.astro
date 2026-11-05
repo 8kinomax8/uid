@@ -12,12 +12,13 @@ const gallery = event ? { 'data-photo-gallery': JSON.stringify(event.photos), 'd
 <section class:list={['home-lead', { 'home-lead--portrait': image && image.height > image.width }]} aria-labelledby="home-title" data-home-lead={event ? 'event' : feature ? 'feature' : 'youth'}>
  <h1 class="home-lead__identity" id="home-title">Union Instrumentale<br />Delémont</h1>
  <div class="home-lead__content">
+  {event && <p class="home-lead__label">Notre prochain événement</p>}
   <h2 class:list={['home-lead__title', {'home-lead__title--long': title.length > 55}]}>{title}</h2>
   {event && <p class="home-lead__when"><time datetime={event.startsAt}>{event.date}</time><span>{event.location}</span></p>}
   <p class="home-lead__summary">{summary}</p>
   <div class="hero-actions">
    {href ? <a class="button-link" href={href}>{linkLabel}</a> : event && <a class="button-link" href={event.image} {...gallery}>Voir l’affiche</a>}
-   {event && <a class="ghost-link" href="/agenda/">Tout l’agenda</a>}
+   {event && <a class="ghost-link" href="/agenda/">Calendrier Google</a>}
   </div>
  </div>
  {event ? <a class="home-lead__media" href={event.image} {...gallery} aria-label={`Agrandir l’affiche : ${event.title}`}>

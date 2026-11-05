@@ -40,6 +40,7 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
  assert.ok(home.includes('data-home-lead="event"'));
  assert.match(home, /<h1[^>]*>Union Instrumentale<br\s*\/?\s*>Delémont<\/h1>/);
  assert.match(home, /<h2[^>]*>TEST concert<\/h2>/);
+ assert.ok(home.indexOf('Notre prochain événement') < home.indexOf('>TEST concert</h2>'));
  assert.ok(!home.includes('<h3>TEST concert</h3>'));assert.ok(home.includes('<h3>TEST suivant</h3>'));
  assert.ok(!home.includes('Découvrir l’histoire'));assert.ok(!home.includes('Depuis 1878'));
  assert.ok(home.includes('home-feature-title'));
@@ -50,6 +51,8 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
  assert.ok(!lutins.includes('content-flow--poster'));assert.ok(aventuriers.includes('TEST découverte'));
  const agenda=fs.readFileSync(path.join(temp,'populated/agenda/index.html'),'utf8');
  assert.ok(agenda.includes('calendar.google.com/calendar/embed'));
+ assert.ok(!agenda.includes('TEST concert'));assert.ok(!agenda.includes('TEST suivant'));
+ assert.ok(!agenda.includes('class="event-card'));
  assert.ok(agenda.includes('second%40group.calendar.google.com'));
  assert.ok(!agenda.includes('calendar-links'));
  assert.ok(!agenda.includes('Ouvrir le calendrier'));
@@ -75,6 +78,7 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
  mode='empty';const empty=await run(['build','--outDir',path.join(temp,'empty')],env);assert.equal(empty.code,0,empty.output);
  const emptyHome=fs.readFileSync(path.join(temp,'empty/index.html'),'utf8');
  assert.ok(emptyHome.includes('Aucun événement'));assert.ok(emptyHome.includes('data-home-lead="feature"'));
+ assert.ok(!emptyHome.includes('Notre prochain événement'));
  assert.ok(!emptyHome.includes('home-feature-title'));
  assert.ok(emptyHome.includes('De nouveaux uniformes'));
  const noSession=fs.readFileSync(path.join(temp,'empty/jeunesse/aventuriers/index.html'),'utf8');

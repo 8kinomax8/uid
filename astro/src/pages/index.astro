@@ -24,7 +24,7 @@ const [nextEvent, ...otherEvents] = events;
 			<div class="events-grid">{otherEvents.map((event, index) => <EventCard event={event} index={index + 1} />)}</div>
 		</> : <>
 			<h2 id="news-title">L’agenda de l’UID</h2>
-			<p>{!nextEvent ? 'Aucun événement n’est programmé pour le moment.' : 'Les prochains rendez-vous seront annoncés ici.'} <a class="text-link" href="/agenda/">Consulter l’agenda complet</a></p>
+			<p>{!nextEvent ? 'Aucun événement n’est programmé pour le moment.' : 'Les autres rendez-vous seront annoncés ici.'} <a class="text-link" href="/agenda/">Consulter le calendrier Google</a></p>
 		</>}
 	</section>
 	{nextEvent && feature && <HomeFeature feature={feature} />}
