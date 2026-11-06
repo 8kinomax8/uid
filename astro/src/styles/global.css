@@ -1543,7 +1543,7 @@ main:focus { outline: none; }
 }
 
 @media (max-width: 900px) {
-	.site-header { min-height: 84px; padding-block: var(--gutter); }
+	.site-header { min-height: 64px; padding-block: 4px; }
 	.home-hero { gap: 32px; padding-top: 24px; }
 	.home-hero > h1 { font-size: clamp(2rem, 7.6vw, 4.5rem); }
 	.home-hero__media { grid-row: 3; }
@@ -1558,7 +1558,7 @@ main:focus { outline: none; }
 	.content-flow, .content-flow--reverse { gap: 32px; padding-bottom: 64px; }
 	.brand-mark { background: var(--night); border-radius: var(--radius); padding: 8px; }
 	[data-theme="light"] .brand-mark { background: #202623; }
-	.brand-mark img { width: 74px; height: auto; }
+	.brand-mark img { width: 64px; height: auto; }
 	.site-header { position: sticky; top: 0; }
 }
 @media (max-width: 560px) {

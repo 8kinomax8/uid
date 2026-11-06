@@ -1,7 +1,7 @@
 ---
 import type { EventItem, HomeFeature } from '../lib/wordpress';
-type Props = { event?: EventItem; feature: HomeFeature | null };
-const { event, feature } = Astro.props;
+type Props = { event?: EventItem; feature: HomeFeature | null; showEventsLink?: boolean };
+const { event, feature, showEventsLink = false } = Astro.props;
 const title = event?.title ?? feature?.title ?? 'La musique se partage';
 const summary = event?.summary ?? feature?.summary ?? 'Découvrez les formations jeunesse de l’Union Instrumentale Delémont et trouvez votre place dans la musique.';
 const image = event?.photos[0] ?? feature?.image;
@@ -18,7 +18,7 @@ const gallery = event ? { 'data-photo-gallery': JSON.stringify(event.photos), 'd
   <p class="home-lead__summary">{summary}</p>
   <div class="hero-actions">
    {href ? <a class="button-link" href={href}>{linkLabel}</a> : event && <a class="button-link" href={event.image} {...gallery}>Voir l’affiche</a>}
-   {event && <a class="ghost-link" href="/agenda/">Calendrier Google</a>}
+   {event && showEventsLink && <a class="ghost-link" href="#news">Tous les événements</a>}
   </div>
  </div>
  {event ? <a class="home-lead__media" href={event.image} {...gallery} aria-label={`Agrandir l’affiche : ${event.title}`}>

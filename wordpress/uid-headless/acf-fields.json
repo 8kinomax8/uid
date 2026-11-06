@@ -203,7 +203,7 @@
         },
         "default_value": "uniforms",
         "return_format": "value",
-        "instructions": "Le prochain événement ouvre l’accueil. Sans événement, cette actualité prend sa place.",
+        "instructions": "Le nom de la fanfare reste en grand en haut de l’accueil. Tous les événements à venir publiés dans WordPress y sont affichés : le premier sous « Notre prochain événement », puis la liste complète plus bas. Un bouton « Tous les événements » permet de rejoindre cette liste lorsque plusieurs dates sont prévues. Cette actualité apparaît ensuite, ou directement sous le nom lorsqu’aucun événement n’est prévu. La page Agenda affiche uniquement le calendrier Google. Masquer cette actualité ne masque aucun événement.",
         "key": "field_uid_home_feature_mode",
         "required": 0
       },

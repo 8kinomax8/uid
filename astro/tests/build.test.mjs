@@ -24,6 +24,7 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
   if(url.pathname.endsWith('/evenements')) {
    res.setHeader('X-WP-TotalPages',['empty','hidden','custom'].includes(mode)?'0':'1');
    data=['empty','hidden','custom'].includes(mode)?[]:[{id:1,title:{rendered:'TEST concert'},featured_media:5,meta:{uid_gallery_ids:[6]},acf:{date_heure:'2099-11-21 10:30:00',description:'<script>unsafe()</script>',lieu:'TEST local',lien_externe:''}},{id:2,title:{rendered:'TEST suivant'},featured_media:5,meta:{uid_gallery_ids:[]},acf:{date_heure:'2099-12-21 10:30:00',description:'Rendez-vous suivant',lieu:'TEST local',lien_externe:''}}];
+   if(mode==='single') data=data.slice(0,1);
   } else if(url.pathname.includes('/media/')) data={id:Number(url.pathname.split('/').at(-1)),source_url:'https://example.com/test.jpg',alt_text:'TEST affiche',media_details:{width:900,height:1200}};
   else if(url.pathname.endsWith('/13')) data={acf:{google_calendar_id:mode==='empty'?'':'test@group.calendar.google.com\nsecond@group.calendar.google.com', ...(mode==='hidden'?{home_feature_mode:'hidden'}:mode==='custom'?{home_feature_mode:'custom',home_feature_title:'TEST actualité',home_feature_summary:'Actualité éditoriale',home_feature_link_label:'Participer',home_feature_url:'https://example.com/projet',home_feature_image:5}:{})}};
   else if(url.pathname.endsWith('/11')) data={acf:{session_active:false}};
@@ -41,11 +42,15 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
  assert.match(home, /<h1[^>]*>Union Instrumentale<br\s*\/?\s*>Delémont<\/h1>/);
  assert.match(home, /<h2[^>]*>TEST concert<\/h2>/);
  assert.ok(home.indexOf('Notre prochain événement') < home.indexOf('>TEST concert</h2>'));
- assert.ok(!home.includes('<h3>TEST concert</h3>'));assert.ok(home.includes('<h3>TEST suivant</h3>'));
+ assert.ok(home.includes('<h3>TEST concert</h3>'));assert.ok(home.includes('<h3>TEST suivant</h3>'));
  assert.ok(!home.includes('Découvrir l’histoire'));assert.ok(!home.includes('Depuis 1878'));
  assert.ok(home.includes('home-feature-title'));
  assert.ok(home.includes('TEST concert'));assert.ok(!home.includes('<script>unsafe()'));
  assert.ok(home.includes('data-photo-gallery='));assert.ok(!home.includes('En savoir plus'));
+ assert.match(home, /href="#news">Tous les événements<\/a>/);
+ assert.ok(!home.includes('Calendrier Google'));assert.ok(!home.includes('Consulter le calendrier Google'));
+ const grid=home.slice(home.indexOf('class="events-grid"'));
+ assert.ok(grid.indexOf('<h3>TEST concert</h3>') < grid.indexOf('<h3>TEST suivant</h3>'));
  const lutins=fs.readFileSync(path.join(temp,'populated/jeunesse/lutins-musiciens/index.html'),'utf8');
  const aventuriers=fs.readFileSync(path.join(temp,'populated/jeunesse/aventuriers/index.html'),'utf8');
  assert.ok(!lutins.includes('content-flow--poster'));assert.ok(aventuriers.includes('TEST découverte'));
@@ -75,10 +80,14 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
  for (const tag of photos.match(/<img[^>]*data-deferred-src[^>]*>/g)||[]) assert.ok(!/\ssrc=/.test(tag));
  assert.ok(photos.includes('<noscript>'));
  assert.ok(!/<img[^>]*\ssrc=[^>]*data-photo-lightbox-image/.test(photos));
+ mode='single';const single=await run(['build','--outDir',path.join(temp,'single')],env);assert.equal(single.code,0,single.output);
+ const singleHome=fs.readFileSync(path.join(temp,'single/index.html'),'utf8');
+ assert.ok(singleHome.includes('<h3>TEST concert</h3>'));assert.ok(!singleHome.includes('href="#news"'));
  mode='empty';const empty=await run(['build','--outDir',path.join(temp,'empty')],env);assert.equal(empty.code,0,empty.output);
  const emptyHome=fs.readFileSync(path.join(temp,'empty/index.html'),'utf8');
  assert.ok(emptyHome.includes('Aucun événement'));assert.ok(emptyHome.includes('data-home-lead="feature"'));
  assert.ok(!emptyHome.includes('Notre prochain événement'));
+ assert.ok(!emptyHome.includes('Consulter le calendrier Google'));assert.ok(!emptyHome.includes('href="#news"'));
  assert.ok(!emptyHome.includes('home-feature-title'));
  assert.ok(emptyHome.includes('De nouveaux uniformes'));
  const noSession=fs.readFileSync(path.join(temp,'empty/jeunesse/aventuriers/index.html'),'utf8');
