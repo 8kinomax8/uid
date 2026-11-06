@@ -37,7 +37,9 @@ test('full static build: live contracts, safe text, empty/disabled state and CMS
  const populated=await run(['build','--outDir',path.join(temp,'populated')],env);
  assert.equal(populated.code,0,populated.output);
  const home=fs.readFileSync(path.join(temp,'populated/index.html'),'utf8');
- assert.ok(home.indexOf('id="news"')<home.indexOf('class="formation-section"'));
+ assert.ok(home.indexOf('data-home-lead="event"') < home.indexOf('home-feature-title'));
+ assert.ok(home.indexOf('home-feature-title') < home.indexOf('class="formation-section"'));
+ assert.ok(home.indexOf('class="formation-section"') < home.indexOf('id="news"'));
  assert.ok(home.includes('data-home-lead="event"'));
  assert.match(home, /<h1[^>]*>Union Instrumentale<br\s*\/?\s*>Delémont<\/h1>/);
  assert.match(home, /<h2[^>]*>TEST concert<\/h2>/);

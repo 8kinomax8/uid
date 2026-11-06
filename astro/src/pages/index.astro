@@ -15,18 +15,6 @@ const nextEvent = events[0];
 <BaseLayout title="Union Instrumentale Delémont" description={site.description}>
 	<HomeLead event={nextEvent} feature={feature} showEventsLink={events.length > 1} />
 
-	<section class:list={["events-section", {"home-agenda-note": events.length === 0}]} id="news" aria-labelledby="news-title">
-		{events.length > 0 ? <>
-			<div class="section-heading" data-reveal>
-				<h2 id="news-title">Tous les événements</h2>
-				<p>Concerts, répétitions ouvertes et rendez-vous de formation : retrouvez les prochaines dates de l’UID.</p>
-			</div>
-			<div class="events-grid">{events.map((event, index) => <EventCard event={event} index={index} />)}</div>
-		</> : <>
-			<h2 id="news-title">Les événements de l’UID</h2>
-			<p>Aucun événement n’est programmé pour le moment.</p>
-		</>}
-	</section>
 	{nextEvent && feature && <HomeFeature feature={feature} />}
 	<section class="formation-section" aria-labelledby="formation-title">
 		<div class="section-heading section-heading--compact" data-reveal>
@@ -50,6 +38,19 @@ const nextEvent = events[0];
 				<div class="formation-link__label"><h3>Union d’Avenir</h3><small>Après la phase 1</small></div>
 			</a>
 		</div>
+	</section>
+
+	<section class:list={["events-section", {"home-agenda-note": events.length === 0}]} id="news" aria-labelledby="news-title">
+		{events.length > 0 ? <>
+			<div class="section-heading" data-reveal>
+				<h2 id="news-title">Tous les événements</h2>
+				<p>Concerts, répétitions ouvertes et rendez-vous de formation : retrouvez les prochaines dates de l’UID.</p>
+			</div>
+			<div class="events-grid">{events.map((event, index) => <EventCard event={event} index={index} />)}</div>
+		</> : <>
+			<h2 id="news-title">Les événements de l’UID</h2>
+			<p>Aucun événement n’est programmé pour le moment.</p>
+		</>}
 	</section>
 
 {events.length > 0 && <PhotoLightbox />}
